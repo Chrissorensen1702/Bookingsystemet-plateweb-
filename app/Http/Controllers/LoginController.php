@@ -41,7 +41,8 @@ class LoginController extends Controller
             ], $remember)) {
                 $request->session()->regenerate();
 
-                return redirect()->intended(route('platform.dashboard'));
+                // Avoid cross-guard intended redirects ending up on "/" (web guard).
+                return redirect()->route('platform.dashboard');
             }
 
             return back()->withErrors([

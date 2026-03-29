@@ -41,7 +41,9 @@ class PlatformLoginController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('platform.dashboard'));
+        // Always go to platform dashboard after successful platform auth.
+        // "intended" can contain stale URLs from the web guard flow.
+        return redirect()->route('platform.dashboard');
     }
 
     public function destroy(Request $request): RedirectResponse
@@ -54,4 +56,3 @@ class PlatformLoginController extends Controller
         return redirect()->route('platform.login');
     }
 }
-
