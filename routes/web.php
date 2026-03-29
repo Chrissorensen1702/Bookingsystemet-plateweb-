@@ -41,6 +41,7 @@ Route::prefix('platform')
             Route::post('/tenants', [PlatformDashboardController::class, 'store'])->name('tenants.store');
             Route::get('/tenants/{tenant}', [PlatformTenantController::class, 'show'])->name('tenants.show');
             Route::patch('/tenants/{tenant}', [PlatformTenantController::class, 'update'])->name('tenants.update');
+            Route::delete('/tenants/{tenant}', [PlatformTenantController::class, 'destroy'])->name('tenants.destroy');
             Route::post('/tenants/{tenant}/owners', [PlatformTenantController::class, 'storeOwner'])->name('tenants.owners.store');
             Route::post('/tenants/{tenant}/locations', [PlatformTenantController::class, 'storeLocation'])->name('tenants.locations.store');
             Route::patch('/tenants/{tenant}/locations/{location}', [PlatformTenantController::class, 'updateLocation'])->name('tenants.locations.update');

@@ -169,6 +169,20 @@
         <div class="platform-location-actions">
           <a href="{{ route('public-booking.create', ['tenant' => $tenant->slug]) }}" class="platform-link-button">Åbn offentlig booking</a>
         </div>
+
+        <div class="platform-danger-zone">
+          <p class="platform-danger-title">Farezone</p>
+          <p class="platform-muted">Sletning fjerner virksomheden permanent inkl. brugere, lokationer, ydelser, bookinger og branding.</p>
+          <form
+            method="POST"
+            action="{{ route('platform.tenants.destroy', $tenant) }}"
+            onsubmit="return confirm('Er du sikker på, at virksomheden {{ $tenant->name }} skal slettes permanent?');"
+          >
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="platform-button platform-button-danger">Slet virksomhed</button>
+          </form>
+        </div>
       </article>
 
       <article class="platform-card">

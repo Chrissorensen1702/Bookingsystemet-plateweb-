@@ -4,7 +4,10 @@ namespace App\Http\Controllers\Platform;
 
 use App\Enums\TenantRole;
 use App\Http\Controllers\Controller;
+use App\Models\Booking;
+use App\Models\Customer;
 use App\Models\Location;
+use App\Models\Service;
 use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
 use App\Models\User;
@@ -313,6 +316,56 @@ class PlatformTenantController extends Controller
         return redirect()
             ->route('platform.tenants.show', $tenant)
             ->with('status', 'Lokationen er slettet.');
+    }
+
+    public function destroy(Request $request, Tenant $tenant): RedirectResponse
+    {
+        $platformUser = $request->user('platform');
+        abort_unless($platformUser?->isDeveloper(), 403);
+
+        $tenantId = (int) $tenant->id;
+
+        if (Tenant::query()->count() <= 1) {
+            return redirect()
+                ->route('platform.tenants.show', $tenant)
+                ->withErrors(['tenant' => 'Den sidste virksomhed kan ikke slettes.']);
+        }
+
+        $tenantName = $tenant->name;
+        $filePathsToDelete = collect([
+            UploadsStorage::normalizePath($tenant->public_logo_path),
+            ...User::query()
+                ->where('tenant_id', $tenantId)
+                ->pluck('profile_photo_path')
+                ->map(static fn ($path): ?string => UploadsStorage::normalizePath($path))
+                ->all(),
+        ])
+            ->filter(static fn (?string $path): bool => is_string($path) && $path !== '')
+            ->unique()
+            ->values()
+            ->all();
+
+        try {
+            DB::transaction(function () use ($tenantId, $tenant): void {
+                Booking::query()->where('tenant_id', $tenantId)->delete();
+                Customer::query()->where('tenant_id', $tenantId)->delete();
+                Service::query()->where('tenant_id', $tenantId)->delete();
+                User::query()->where('tenant_id', $tenantId)->delete();
+                $tenant->delete();
+            });
+        } catch (QueryException) {
+            return redirect()
+                ->route('platform.tenants.show', $tenant)
+                ->withErrors(['tenant' => 'Virksomheden kunne ikke slettes. Kontroller relationer og prøv igen.']);
+        }
+
+        foreach ($filePathsToDelete as $filePath) {
+            UploadsStorage::delete($filePath);
+        }
+
+        return redirect()
+            ->route('platform.dashboard')
+            ->with('status', "Virksomheden {$tenantName} er slettet.");
     }
 
     private function resolveInitials(string $name, ?string $initials): string
