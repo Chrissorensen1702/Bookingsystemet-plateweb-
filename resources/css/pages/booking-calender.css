@@ -75,7 +75,7 @@
 
 .booking-filter-form {
   display: grid;
-  grid-template-columns: minmax(132px, 156px) minmax(170px, 1.2fr) repeat(3, minmax(130px, 1fr)) auto;
+  grid-template-columns: minmax(132px, 156px) minmax(170px, 1.2fr) repeat(3, minmax(130px, 1fr));
   gap: 10px;
   align-items: end;
   width: 100%;
@@ -85,8 +85,7 @@
   grid-template-columns:
     minmax(132px, 154px)
     minmax(180px, 1.25fr)
-    repeat(3, minmax(134px, 1fr))
-    minmax(180px, auto);
+    repeat(3, minmax(134px, 1fr));
   gap: 10px 12px;
 }
 
@@ -394,22 +393,6 @@
   min-width: 0;
 }
 
-.booking-filter-form-top .booking-filter-actions {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  justify-self: stretch;
-  width: 100%;
-}
-
-.booking-filter-form-top .booking-filter-actions button,
-.booking-filter-form-top .booking-filter-reset {
-  width: 100%;
-  min-width: 0;
-  flex: 1 1 0;
-  box-sizing: border-box;
-}
-
 .booking-filter-actions button,
 .booking-filter-reset {
   min-height: 36px;
@@ -443,12 +426,6 @@
 @media (max-width: 1280px) {
   .booking-filter-form-top {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .booking-filter-form-top .booking-filter-actions {
-    grid-column: 1 / -1;
-    justify-self: stretch;
-    max-width: 340px;
   }
 }
 

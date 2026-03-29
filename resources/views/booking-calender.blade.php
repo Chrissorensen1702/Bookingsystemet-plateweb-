@@ -101,10 +101,6 @@
                 </select>
               </label>
 
-              <div class="booking-filter-actions booking-filter-actions-advanced">
-                <button type="submit">Filtrer</button>
-                <a href="{{ $clearFiltersUrl }}" class="booking-filter-reset">Nulstil</a>
-              </div>
             </form>
 
             <div class="booking-mobile-day-nav" data-mobile-day-nav hidden>
@@ -1555,12 +1551,22 @@
         closeFilterModal();
       });
 
-      topLocationInput?.addEventListener('change', () => {
-        if (!mobileMediaQuery.matches || !topFilterForm) {
-          return;
-        }
+      const topAutoSubmitInputs = [
+        topDateInput,
+        topLocationInput,
+        topStaffInput,
+        topServiceInput,
+        topStatusInput,
+      ].filter((input) => input instanceof HTMLInputElement || input instanceof HTMLSelectElement);
 
-        topFilterForm.requestSubmit();
+      topAutoSubmitInputs.forEach((input) => {
+        input.addEventListener('change', () => {
+          if (!topFilterForm) {
+            return;
+          }
+
+          topFilterForm.requestSubmit();
+        });
       });
 
       topDateInput?.addEventListener('change', () => {
