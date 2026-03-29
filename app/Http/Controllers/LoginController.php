@@ -33,18 +33,6 @@ class LoginController extends Controller
             'password' => $credentials['password'],
             'is_active' => true,
         ], $remember)) {
-            // Allow platform developers to use the same login form and be routed correctly.
-            if (Auth::guard('platform')->attempt([
-                'email' => $credentials['email'],
-                'password' => $credentials['password'],
-                'is_active' => true,
-            ], $remember)) {
-                $request->session()->regenerate();
-
-                // Avoid cross-guard intended redirects ending up on "/" (web guard).
-                return redirect()->route('platform.dashboard');
-            }
-
             return back()->withErrors([
                 'email' => 'Forkert e-mail eller adgangskode.',
             ])->onlyInput('email');
