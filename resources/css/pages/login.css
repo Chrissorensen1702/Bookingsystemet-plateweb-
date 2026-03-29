@@ -106,6 +106,37 @@ body.login-page-body {
   font: inherit;
 }
 
+.login-password-wrap {
+  position: relative;
+}
+
+.login-password-wrap input {
+  padding-right: 74px;
+}
+
+.login-password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid rgb(var(--color-text-rgb) / 12%);
+  border-radius: 9px;
+  background: rgb(var(--color-surface-rgb) / 1);
+  color: rgb(var(--color-text-rgb) / 0.85);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.login-password-toggle:hover {
+  border-color: rgb(var(--color-primary-rgb) / 0.3);
+  color: rgb(var(--color-primary-rgb) / 1);
+}
+
 .login-field input:focus {
   outline: none;
   border-color: rgb(var(--color-primary-rgb) / 0.45);

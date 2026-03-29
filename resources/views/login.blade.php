@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   @include('layouts.partials.pwa-meta')
   <title>Login | Bookingsystem</title>
-  @vite(['resources/css/app-login.css', 'resources/js/pwa.js'])
+  @vite(['resources/css/app-login.css', 'resources/js/pwa.js', 'resources/js/pages/login-password-toggle.js'])
 </head>
 <body class="login-page-body">
   <main class="login-page">
@@ -47,13 +47,24 @@
 
           <label class="login-field">
             <span>Adgangskode</span>
-            <input
-              type="password"
-              name="password"
-              placeholder="Indtast adgangskode"
-              autocomplete="current-password"
-              required
-            >
+            <div class="login-password-wrap">
+              <input
+                id="login-password"
+                type="password"
+                name="password"
+                placeholder="Indtast adgangskode"
+                autocomplete="current-password"
+                required
+              >
+              <button
+                type="button"
+                class="login-password-toggle"
+                data-password-toggle
+                data-password-target="login-password"
+                aria-pressed="false"
+                aria-label="Vis adgangskode"
+              >Vis</button>
+            </div>
           </label>
 
           <label class="login-check">
