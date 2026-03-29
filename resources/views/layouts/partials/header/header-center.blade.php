@@ -1,5 +1,7 @@
 @php
   $iconBase = asset('images/icon-pack/lucide/icons');
+  $sidebarUser = auth()->user();
+  $workShiftsEnabled = $sidebarUser?->workShiftsEnabled() ?? true;
 @endphp
 
 <a href="{{ route('booking-calender') }}" class="sidebar-brand">
@@ -17,15 +19,31 @@
     <span class="sr-only">Kalender</span>
   </a>
 
-  <a
-    href="{{ route('my-shifts.index') }}"
-    class="nav-link{{ request()->routeIs('my-shifts.*') ? ' is-active' : '' }}"
-    aria-label="Mine vagter"
-    title="Mine vagter"
-  >
-    <img src="{{ $iconBase }}/clock-3.svg" alt="" class="nav-icon" aria-hidden="true">
-    <span class="sr-only">Mine vagter</span>
-  </a>
+  @if ($workShiftsEnabled)
+    <a
+      href="{{ route('my-shifts.index') }}"
+      class="nav-link{{ request()->routeIs('my-shifts.*') ? ' is-active' : '' }}"
+      aria-label="Mine vagter"
+      title="Mine vagter"
+    >
+      <img src="{{ $iconBase }}/clock-3.svg" alt="" class="nav-icon" aria-hidden="true">
+      <span class="sr-only">Mine vagter</span>
+    </a>
+  @else
+    <a
+      href="#"
+      class="nav-link is-locked"
+      aria-disabled="true"
+      aria-label="Mine vagter (bookbarhed slået fra)"
+      title="Mine vagter (bookbarhed slået fra)"
+    >
+      <img src="{{ $iconBase }}/clock-3.svg" alt="" class="nav-icon" aria-hidden="true">
+      <span class="nav-state nav-state-locked" aria-hidden="true">
+        <img src="{{ $iconBase }}/lock.svg" alt="">
+      </span>
+      <span class="sr-only">Mine vagter (bookbarhed slået fra)</span>
+    </a>
+  @endif
 
   @can('availability.manage')
     <a
@@ -84,7 +102,6 @@
 
 @auth
   @php
-    $sidebarUser = auth()->user();
     $sidebarUserPhotoUrl = $sidebarUser?->profilePhotoUrl();
   @endphp
   <div class="sidebar-bottom">

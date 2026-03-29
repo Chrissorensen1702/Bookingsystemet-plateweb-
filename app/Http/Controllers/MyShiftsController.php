@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Tenant;
 use App\Models\User;
 use App\Models\UserWorkShift;
 use Carbon\CarbonImmutable;
@@ -18,6 +19,19 @@ class MyShiftsController extends Controller
         /** @var User|null $user */
         $user = $request->user();
         abort_if(! $user instanceof User || (int) $user->tenant_id !== $tenantId, 403);
+        $workShiftsEnabled = (bool) (Tenant::query()
+            ->whereKey($tenantId)
+            ->value('work_shifts_enabled') ?? true);
+
+        if (! $workShiftsEnabled) {
+            return view('my-shifts', [
+                'workShiftsEnabled' => false,
+                'upcomingShiftsByDate' => [],
+                'upcomingShiftCount' => 0,
+                'countdownPrefix' => 'Næste vagt starter om',
+                'countdownTargetIso' => null,
+            ]);
+        }
 
         $accessibleLocationIds = $this->locationScopeForRequest($request, $tenantId)
             ->pluck('id')
@@ -107,6 +121,7 @@ class MyShiftsController extends Controller
         }
 
         return view('my-shifts', [
+            'workShiftsEnabled' => true,
             'upcomingShiftsByDate' => $upcomingShiftsByDate,
             'upcomingShiftCount' => (int) $upcomingShifts->count(),
             'countdownPrefix' => $countdownPrefix,

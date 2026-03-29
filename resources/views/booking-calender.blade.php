@@ -36,19 +36,6 @@
       <div class="booking-table-layout">
         <div class="booking-table-card">
           <section class="booking-table-controls">
-            <div class="booking-filter-head">
-              <p class="booking-detail-label">Filtre</p>
-              <div class="booking-filter-head-actions">
-                <button type="button" class="booking-now-follow-toggle" data-now-follow-toggle aria-pressed="true">
-                  <span class="booking-now-follow-text">Auto-følg</span>
-                  <span class="booking-now-follow-track" aria-hidden="true">
-                    <span class="booking-now-follow-thumb"></span>
-                  </span>
-                  <span class="booking-now-follow-label" data-now-follow-label>Til</span>
-                </button>
-              </div>
-            </div>
-
             <form method="GET" class="booking-filter-form booking-filter-form-top">
               <label class="booking-filter-field booking-filter-field-week">
                 <span>Dato</span>
@@ -100,6 +87,16 @@
                   <option value="canceled" @selected($filterState['status'] === 'canceled')>Annulleret</option>
                 </select>
               </label>
+
+              <div class="booking-filter-field booking-filter-field-auto-follow">
+                <button type="button" class="booking-now-follow-toggle" data-now-follow-toggle aria-pressed="true">
+                  <span class="booking-now-follow-text">Auto-følg</span>
+                  <span class="booking-now-follow-track" aria-hidden="true">
+                    <span class="booking-now-follow-thumb"></span>
+                  </span>
+                  <span class="booking-now-follow-label" data-now-follow-label>Til</span>
+                </button>
+              </div>
 
             </form>
 

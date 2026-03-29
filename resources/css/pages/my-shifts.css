@@ -124,6 +124,38 @@
   color: var(--color-text-soft);
 }
 
+.my-shifts-locked {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+  padding: 14px;
+  border: 1px dashed rgb(220 38 38 / 0.5);
+  border-radius: 12px;
+  background: rgb(254 242 242 / 0.7);
+}
+
+.my-shifts-locked img {
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  filter: invert(15%) sepia(84%) saturate(3191%) hue-rotate(349deg) brightness(86%) contrast(102%);
+}
+
+.my-shifts-locked strong {
+  display: block;
+  font-size: 14px;
+  color: rgb(153 27 27 / 0.95);
+}
+
+.my-shifts-locked span {
+  display: block;
+  margin-top: 4px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgb(127 29 29 / 0.9);
+}
+
 .my-shifts-list-scroll {
   flex: 1 1 auto;
   min-height: 0;

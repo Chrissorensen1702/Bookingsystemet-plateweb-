@@ -75,7 +75,7 @@
 
 .booking-filter-form {
   display: grid;
-  grid-template-columns: minmax(132px, 156px) minmax(170px, 1.2fr) repeat(3, minmax(130px, 1fr));
+  grid-template-columns: minmax(132px, 156px) minmax(170px, 1.2fr) repeat(3, minmax(130px, 1fr)) auto;
   gap: 10px;
   align-items: end;
   width: 100%;
@@ -85,13 +85,21 @@
   grid-template-columns:
     minmax(132px, 154px)
     minmax(180px, 1.25fr)
-    repeat(3, minmax(134px, 1fr));
+    repeat(3, minmax(134px, 1fr))
+    auto;
   gap: 10px 12px;
 }
 
 .booking-filter-field {
   display: grid;
   gap: 4px;
+}
+
+.booking-filter-field-auto-follow {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  min-width: 0;
 }
 
 .booking-filter-field span {
@@ -426,6 +434,11 @@
 @media (max-width: 1280px) {
   .booking-filter-form-top {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .booking-filter-field-auto-follow {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
   }
 }
 

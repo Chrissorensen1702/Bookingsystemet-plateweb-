@@ -7,87 +7,110 @@
 @endsection
 
 @section('main-content')
+  @php
+    $workShiftsEnabled = (bool) ($workShiftsEnabled ?? true);
+  @endphp
   <section class="my-shifts-page">
     <div class="my-shifts-layout">
       <article class="my-shifts-card">
-        <div class="my-shifts-head">
-          <div>
-            <p class="my-shifts-eyebrow">Personligt overblik</p>
-            <h1>Mine vagter</h1>
+        @if (! $workShiftsEnabled)
+          <div class="my-shifts-head">
+            <div>
+              <p class="my-shifts-eyebrow">Personligt overblik</p>
+              <h1>Mine vagter</h1>
+            </div>
+            <p class="my-shifts-text">
+              Bookbarhed er slået fra i indstillinger, så vagtplanen er låst lige nu.
+            </p>
           </div>
-          <p class="my-shifts-text">
-            Her ser du dine kommende offentliggjorte vagter. Afholdte vagter vises ikke.
-          </p>
-        </div>
 
-        @if (filled($countdownTargetIso))
-          <div class="my-shifts-range-label my-shifts-countdown" data-countdown-target="{{ $countdownTargetIso }}">
-            <span>{{ $countdownPrefix }}</span>
-            <strong data-countdown-value>--</strong>
+          <article class="my-shifts-locked" role="status" aria-live="polite">
+            <img src="{{ asset('images/icon-pack/lucide/icons/lock.svg') }}" alt="" aria-hidden="true">
+            <div>
+              <strong>Vagtplanen er låst</strong>
+              <span>Slå bookbarhed til under Indstillinger for at åbne siden igen.</span>
+            </div>
+          </article>
+        @else
+          <div class="my-shifts-head">
+            <div>
+              <p class="my-shifts-eyebrow">Personligt overblik</p>
+              <h1>Mine vagter</h1>
+            </div>
+            <p class="my-shifts-text">
+              Her ser du dine kommende offentliggjorte vagter. Afholdte vagter vises ikke.
+            </p>
+          </div>
+
+          @if (filled($countdownTargetIso))
+            <div class="my-shifts-range-label my-shifts-countdown" data-countdown-target="{{ $countdownTargetIso }}">
+              <span>{{ $countdownPrefix }}</span>
+              <strong data-countdown-value>--</strong>
+            </div>
+          @endif
+          <div class="my-shifts-range-meta">
+            {{ $upcomingShiftCount }} kommende vagter
+          </div>
+
+          <div class="my-shifts-list-scroll">
+            <div class="my-shifts-list">
+              @forelse ($upcomingShiftsByDate as $dateKey => $dayShifts)
+                @foreach ($dayShifts as $shift)
+                  @php
+                    $shiftDate = $shift->shift_date->locale('da');
+                    $weekdayLabel = mb_strtolower((string) $shiftDate->isoFormat('dddd'));
+                    $dateLabel = mb_strtolower((string) $shiftDate->isoFormat('D. MMMM'));
+                    $shiftTime = substr((string) $shift->starts_at, 0, 5) . ' - ' . substr((string) $shift->ends_at, 0, 5);
+                    $shiftNote = trim((string) ($shift->notes ?? ''));
+                    $breakLabel = $shift->break_starts_at && $shift->break_ends_at
+                      ? 'Pause ' . substr((string) $shift->break_starts_at, 0, 5) . '-' . substr((string) $shift->break_ends_at, 0, 5)
+                      : null;
+                  @endphp
+                  <div class="my-shift-row{{ $shift->workRoleValue() === \App\Models\UserWorkShift::ROLE_ADMINISTRATION ? ' is-admin' : '' }}">
+                    <div class="my-shift-row-main my-shift-row-main-structured">
+                      <div class="my-shift-structured-date">
+                        <span class="my-shift-structured-weekday">{{ $weekdayLabel }}</span>
+                        <span class="my-shift-structured-day">{{ $dateLabel }}</span>
+                      </div>
+                      <span class="my-shift-structured-divider" aria-hidden="true"></span>
+                      <div class="my-shift-structured-right">
+                        <strong class="my-shift-structured-time">{{ $shiftTime }}</strong>
+                        <span class="my-shift-structured-context">
+                          <span>{{ $shift->location?->name ?? 'Lokation' }}</span>
+                          <span>{{ $shift->workRoleLabel() }}</span>
+                        </span>
+                        @if ($breakLabel)
+                          <span class="my-shift-structured-break">{{ $breakLabel }}</span>
+                        @endif
+                        @if ($shiftNote !== '')
+                          <div id="my-shift-note-{{ $shift->id }}" class="my-shift-note-source" hidden>{{ $shiftNote }}</div>
+                        @endif
+                      </div>
+                      @if ($shiftNote !== '')
+                        <button
+                          type="button"
+                          class="my-shift-note-toggle"
+                          data-note-toggle
+                          data-note-target="my-shift-note-{{ $shift->id }}"
+                          data-note-date="{{ $weekdayLabel }} {{ $dateLabel }}"
+                          title="Vis note"
+                        >
+                          <span class="my-shift-note-toggle-icon" aria-hidden="true"></span>
+                          <span class="sr-only">Vis note</span>
+                        </button>
+                      @endif
+                    </div>
+                  </div>
+                @endforeach
+              @empty
+                <article class="my-shifts-empty">
+                  <strong>Ingen kommende vagter</strong>
+                  <span>Der er ingen offentliggjorte vagter frem i tiden endnu.</span>
+                </article>
+              @endforelse
+            </div>
           </div>
         @endif
-        <div class="my-shifts-range-meta">
-          {{ $upcomingShiftCount }} kommende vagter
-        </div>
-
-        <div class="my-shifts-list-scroll">
-          <div class="my-shifts-list">
-            @forelse ($upcomingShiftsByDate as $dateKey => $dayShifts)
-              @foreach ($dayShifts as $shift)
-                @php
-                  $shiftDate = $shift->shift_date->locale('da');
-                  $weekdayLabel = mb_strtolower((string) $shiftDate->isoFormat('dddd'));
-                  $dateLabel = mb_strtolower((string) $shiftDate->isoFormat('D. MMMM'));
-                  $shiftTime = substr((string) $shift->starts_at, 0, 5) . ' - ' . substr((string) $shift->ends_at, 0, 5);
-                  $shiftNote = trim((string) ($shift->notes ?? ''));
-                  $breakLabel = $shift->break_starts_at && $shift->break_ends_at
-                    ? 'Pause ' . substr((string) $shift->break_starts_at, 0, 5) . '-' . substr((string) $shift->break_ends_at, 0, 5)
-                    : null;
-                @endphp
-                <div class="my-shift-row{{ $shift->workRoleValue() === \App\Models\UserWorkShift::ROLE_ADMINISTRATION ? ' is-admin' : '' }}">
-                  <div class="my-shift-row-main my-shift-row-main-structured">
-                    <div class="my-shift-structured-date">
-                      <span class="my-shift-structured-weekday">{{ $weekdayLabel }}</span>
-                      <span class="my-shift-structured-day">{{ $dateLabel }}</span>
-                    </div>
-                    <span class="my-shift-structured-divider" aria-hidden="true"></span>
-                    <div class="my-shift-structured-right">
-                      <strong class="my-shift-structured-time">{{ $shiftTime }}</strong>
-                      <span class="my-shift-structured-context">
-                        <span>{{ $shift->location?->name ?? 'Lokation' }}</span>
-                        <span>{{ $shift->workRoleLabel() }}</span>
-                      </span>
-                      @if ($breakLabel)
-                        <span class="my-shift-structured-break">{{ $breakLabel }}</span>
-                      @endif
-                      @if ($shiftNote !== '')
-                        <div id="my-shift-note-{{ $shift->id }}" class="my-shift-note-source" hidden>{{ $shiftNote }}</div>
-                      @endif
-                    </div>
-                    @if ($shiftNote !== '')
-                      <button
-                        type="button"
-                        class="my-shift-note-toggle"
-                        data-note-toggle
-                        data-note-target="my-shift-note-{{ $shift->id }}"
-                        data-note-date="{{ $weekdayLabel }} {{ $dateLabel }}"
-                        title="Vis note"
-                      >
-                        <span class="my-shift-note-toggle-icon" aria-hidden="true"></span>
-                        <span class="sr-only">Vis note</span>
-                      </button>
-                    @endif
-                  </div>
-                </div>
-              @endforeach
-            @empty
-              <article class="my-shifts-empty">
-                <strong>Ingen kommende vagter</strong>
-                <span>Der er ingen offentliggjorte vagter frem i tiden endnu.</span>
-              </article>
-            @endforelse
-          </div>
-        </div>
       </article>
     </div>
   </section>

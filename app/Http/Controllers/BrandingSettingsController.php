@@ -80,6 +80,7 @@ class BrandingSettingsController extends Controller
             'publicBookingPreviewUrl' => route('public-booking.create', array_filter([
                 'tenant' => $tenant->slug ?: null,
                 'location_id' => $selectedLocationId > 0 ? $selectedLocationId : null,
+                'preview' => 1,
             ])),
             'planName' => (string) ($plan?->name ?? ''),
             'planRequiresPoweredBy' => (bool) ($plan?->requires_powered_by ?? false),

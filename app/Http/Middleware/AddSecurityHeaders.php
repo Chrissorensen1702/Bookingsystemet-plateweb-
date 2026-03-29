@@ -16,15 +16,17 @@ class AddSecurityHeaders
             return $response;
         }
 
+        $allowSameOriginFrame = $this->allowsSameOriginFrame($request);
+
         $response->headers->set('X-Content-Type-Options', 'nosniff');
-        $response->headers->set('X-Frame-Options', 'DENY');
+        $response->headers->set('X-Frame-Options', $allowSameOriginFrame ? 'SAMEORIGIN' : 'DENY');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
         $response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()');
         $response->headers->set('Cross-Origin-Opener-Policy', 'same-origin');
         $response->headers->set('Cross-Origin-Resource-Policy', 'same-origin');
         $response->headers->set('X-Permitted-Cross-Domain-Policies', 'none');
 
-        $contentSecurityPolicy = $this->buildContentSecurityPolicy();
+        $contentSecurityPolicy = $this->buildContentSecurityPolicy($allowSameOriginFrame);
 
         if ($contentSecurityPolicy !== '') {
             $response->headers->set('Content-Security-Policy', $contentSecurityPolicy);
@@ -37,7 +39,7 @@ class AddSecurityHeaders
         return $response;
     }
 
-    private function buildContentSecurityPolicy(): string
+    private function buildContentSecurityPolicy(bool $allowSameOriginFrame = false): string
     {
         if (! (bool) config('security.headers.csp.enabled', true)) {
             return '';
@@ -75,7 +77,7 @@ class AddSecurityHeaders
             "default-src 'self'",
             "base-uri 'self'",
             "form-action 'self'",
-            "frame-ancestors 'none'",
+            $allowSameOriginFrame ? "frame-ancestors 'self'" : "frame-ancestors 'none'",
             "object-src 'none'",
             'script-src ' . implode(' ', array_unique($scriptSources)),
             'style-src ' . implode(' ', array_unique($styleSources)),
@@ -87,5 +89,18 @@ class AddSecurityHeaders
         ];
 
         return implode('; ', $directives) . ';';
+    }
+
+    private function allowsSameOriginFrame(Request $request): bool
+    {
+        if (! $request->isMethod('GET')) {
+            return false;
+        }
+
+        if (! $request->routeIs('public-booking.create')) {
+            return false;
+        }
+
+        return $request->boolean('preview');
     }
 }

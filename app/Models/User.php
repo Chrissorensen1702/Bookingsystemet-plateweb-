@@ -179,6 +179,19 @@ class User extends Authenticatable
         return $this->hasPermission('users.permissions.manage');
     }
 
+    public function workShiftsEnabled(): bool
+    {
+        $tenantId = max(0, (int) $this->tenant_id);
+
+        if ($tenantId <= 0) {
+            return true;
+        }
+
+        return (bool) (Tenant::query()
+            ->whereKey($tenantId)
+            ->value('work_shifts_enabled') ?? true);
+    }
+
     public function hasPermission(string $permissionKey): bool
     {
         $key = trim($permissionKey);
