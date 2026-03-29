@@ -1,0 +1,56 @@
+<svg width="1400" height="920" viewBox="0 0 1400 920" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1400" height="920" fill="#F7F6F3"/>
+  <text x="80" y="100" fill="#1F2933" font-family="Arial, Helvetica, sans-serif" font-size="44" font-weight="700">Booking System Palette</text>
+  <text x="80" y="145" fill="#52606D" font-family="Arial, Helvetica, sans-serif" font-size="24">Retail / service UI med rolige basisfarver og varm CTA-accent</text>
+
+  <rect x="80" y="200" width="380" height="220" rx="24" fill="#FFFFFF" stroke="#D9E2EC" stroke-width="2"/>
+  <rect x="110" y="235" width="320" height="88" rx="18" fill="#1F6F78"/>
+  <text x="140" y="290" fill="#FFFFFF" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700">Primary</text>
+  <text x="110" y="360" fill="#1F2933" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="700">#1F6F78</text>
+  <text x="110" y="392" fill="#52606D" font-family="Arial, Helvetica, sans-serif" font-size="20">Knapper, topbar, links, aktiv navigation</text>
+
+  <rect x="510" y="200" width="380" height="220" rx="24" fill="#FFFFFF" stroke="#D9E2EC" stroke-width="2"/>
+  <rect x="540" y="235" width="320" height="88" rx="18" fill="#F2A65A"/>
+  <text x="570" y="290" fill="#FFFFFF" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700">Accent</text>
+  <text x="540" y="360" fill="#1F2933" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="700">#F2A65A</text>
+  <text x="540" y="392" fill="#52606D" font-family="Arial, Helvetica, sans-serif" font-size="20">Book tid, CTA, highlights, badges</text>
+
+  <rect x="940" y="200" width="380" height="220" rx="24" fill="#FFFFFF" stroke="#D9E2EC" stroke-width="2"/>
+  <rect x="970" y="235" width="320" height="88" rx="18" fill="#F0EDE7"/>
+  <text x="1000" y="290" fill="#1F2933" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700">Surface Alt</text>
+  <text x="970" y="360" fill="#1F2933" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="700">#F0EDE7</text>
+  <text x="970" y="392" fill="#52606D" font-family="Arial, Helvetica, sans-serif" font-size="20">Sektioner, sidepanel, rolige flader</text>
+
+  <rect x="80" y="470" width="1240" height="320" rx="28" fill="#FFFFFF" stroke="#D9E2EC" stroke-width="2"/>
+  <text x="120" y="535" fill="#1F2933" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700">UI tokens</text>
+
+  <rect x="120" y="575" width="140" height="140" rx="20" fill="#F7F6F3"/>
+  <text x="120" y="745" fill="#1F2933" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700">BG</text>
+  <text x="120" y="773" fill="#52606D" font-family="Arial, Helvetica, sans-serif" font-size="18">#F7F6F3</text>
+
+  <rect x="300" y="575" width="140" height="140" rx="20" fill="#FFFFFF" stroke="#D9E2EC" stroke-width="2"/>
+  <text x="300" y="745" fill="#1F2933" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700">Surface</text>
+  <text x="300" y="773" fill="#52606D" font-family="Arial, Helvetica, sans-serif" font-size="18">#FFFFFF</text>
+
+  <rect x="480" y="575" width="140" height="140" rx="20" fill="#D9EEF0"/>
+  <text x="480" y="745" fill="#1F2933" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700">Primary Soft</text>
+  <text x="480" y="773" fill="#52606D" font-family="Arial, Helvetica, sans-serif" font-size="18">#D9EEF0</text>
+
+  <rect x="660" y="575" width="140" height="140" rx="20" fill="#FFF1E2"/>
+  <text x="660" y="745" fill="#1F2933" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700">Accent Soft</text>
+  <text x="660" y="773" fill="#52606D" font-family="Arial, Helvetica, sans-serif" font-size="18">#FFF1E2</text>
+
+  <rect x="840" y="575" width="140" height="140" rx="20" fill="#1F2933"/>
+  <text x="840" y="745" fill="#1F2933" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700">Text</text>
+  <text x="840" y="773" fill="#52606D" font-family="Arial, Helvetica, sans-serif" font-size="18">#1F2933</text>
+
+  <rect x="1020" y="575" width="140" height="140" rx="20" fill="#52606D"/>
+  <text x="1020" y="745" fill="#1F2933" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700">Text Soft</text>
+  <text x="1020" y="773" fill="#52606D" font-family="Arial, Helvetica, sans-serif" font-size="18">#52606D</text>
+
+  <rect x="1200" y="575" width="80" height="140" rx="20" fill="#D9E2EC"/>
+  <text x="1188" y="745" fill="#1F2933" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700">Border</text>
+  <text x="1188" y="773" fill="#52606D" font-family="Arial, Helvetica, sans-serif" font-size="18">#D9E2EC</text>
+
+  <text x="80" y="860" fill="#52606D" font-family="Arial, Helvetica, sans-serif" font-size="20">Primær tone: teal. Kontrast tone: varm orange. Neutrale flader holder systemet roligt og professionelt.</text>
+</svg>

@@ -1,0 +1,12 @@
+@import './colorpalette.css';
+@import './layouts/default-public.css';
+@import './header/public/header-links.css';
+@import './images/logo-header.css';
+@import './pages/booking-calender.css';
+@import './pages/services.css';
+@import './pages/users.css';
+@import './pages/availability.css';
+@import './pages/settings.css';
+@import './pages/profile.css';
+@import './pages/my-shifts.css';
+@import './pages/mobile-optimizations.css';

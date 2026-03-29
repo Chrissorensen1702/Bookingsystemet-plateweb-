@@ -1,0 +1,31 @@
+{
+  "name": "PlaeBooking",
+  "short_name": "PlaeBooking",
+  "description": "Bookingkalender og online booking samlet i et system.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f7fb",
+  "theme_color": "#5c80bc",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "./images/logo/pwa-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./images/logo/pwa-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./images/logo/pwa-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

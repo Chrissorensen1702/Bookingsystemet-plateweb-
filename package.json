@@ -1,0 +1,20 @@
+{
+    "$schema": "https://www.schemastore.org/package.json",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "build": "rm -f public/hot && vite build",
+        "dev": "vite --host 127.0.0.1 --port 5173 --strictPort"
+    },
+    "devDependencies": {
+        "@tailwindcss/vite": "^4.0.0",
+        "axios": "^1.11.0",
+        "concurrently": "^9.0.1",
+        "laravel-vite-plugin": "^2.0.0",
+        "tailwindcss": "^4.0.0",
+        "vite": "^7.3.1"
+    },
+    "dependencies": {
+        "lottie-web": "^5.13.0"
+    }
+}

@@ -1,0 +1,9 @@
+import './bootstrap';
+import './header/loginmodal';
+import './header/sticky';
+import './header/dropdown';
+import './pages/home';
+import './pages/services';
+import './pages/users';
+import './pages/availability';
+import './pages/settings';

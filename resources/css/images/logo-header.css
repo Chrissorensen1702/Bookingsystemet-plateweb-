@@ -1,0 +1,15 @@
+.logo {
+  display: block;
+  width: auto;
+  height: 80px;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.logo-login {
+  display: block;
+  width: auto;
+  height: 200px;
+  max-width: 100%;
+  object-fit: contain;
+}
