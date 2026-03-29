@@ -467,6 +467,7 @@
 }
 
 .booking-mobile-day-label-button {
+  position: relative;
   width: 100%;
   min-height: 30px;
   display: inline-flex;
@@ -477,8 +478,12 @@
   border-radius: 999px;
   background: rgb(var(--color-surface-rgb) / 1);
   color: var(--color-text);
-  font: inherit;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1;
+  box-sizing: border-box;
   cursor: pointer;
+  overflow: hidden;
 }
 
 .booking-mobile-day-label-button::after {
@@ -489,10 +494,16 @@
 
 .booking-mobile-day-picker-input {
   position: absolute;
-  width: 0;
-  height: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
   opacity: 0;
-  pointer-events: none;
+  pointer-events: auto;
+  cursor: pointer;
 }
 
 .booking-mobile-day-button {
@@ -1194,7 +1205,8 @@
 
   .booking-filter-field-week,
   .booking-filter-field-advanced,
-  .booking-filter-actions-advanced {
+  .booking-filter-actions-advanced,
+  .booking-filter-field-auto-follow {
     display: none;
   }
 

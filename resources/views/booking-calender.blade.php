@@ -104,10 +104,10 @@
               <button type="button" class="booking-mobile-day-button" data-mobile-day-prev aria-label="Forrige dag">
                 Forrige
               </button>
-              <button type="button" class="booking-mobile-day-label-button" data-mobile-day-picker-toggle aria-label="Vælg dato">
+              <label class="booking-mobile-day-label-button" aria-label="Vælg dato">
                 <span class="booking-mobile-day-label" data-mobile-day-label></span>
-              </button>
-              <input type="date" class="booking-mobile-day-picker-input" data-mobile-day-picker tabindex="-1" aria-hidden="true">
+                <input type="date" class="booking-mobile-day-picker-input" data-mobile-day-picker>
+              </label>
               <button type="button" class="booking-mobile-day-button" data-mobile-day-next aria-label="Næste dag">
                 Næste
               </button>
@@ -1240,7 +1240,6 @@
       let autoFollow = true;
       const mobileDayNav = document.querySelector('[data-mobile-day-nav]');
       const mobileDayLabel = mobileDayNav?.querySelector('[data-mobile-day-label]');
-      const mobileDayPickerToggle = mobileDayNav?.querySelector('[data-mobile-day-picker-toggle]');
       const mobileDayPickerInput = mobileDayNav?.querySelector('[data-mobile-day-picker]');
       const mobileDayPrevButton = mobileDayNav?.querySelector('[data-mobile-day-prev]');
       const mobileDayNextButton = mobileDayNav?.querySelector('[data-mobile-day-next]');
@@ -1468,24 +1467,6 @@
 
       mobileDayNextButton?.addEventListener('click', () => {
         navigateCalendarDate(1);
-      });
-
-      mobileDayPickerToggle?.addEventListener('click', () => {
-        if (!mobileMediaQuery.matches || !(mobileDayPickerInput instanceof HTMLInputElement)) {
-          return;
-        }
-
-        if (topDateInput instanceof HTMLInputElement && topDateInput.value) {
-          mobileDayPickerInput.value = topDateInput.value;
-        }
-
-        if (typeof mobileDayPickerInput.showPicker === 'function') {
-          mobileDayPickerInput.showPicker();
-          return;
-        }
-
-        mobileDayPickerInput.focus({ preventScroll: true });
-        mobileDayPickerInput.click();
       });
 
       mobileDayPickerInput?.addEventListener('change', () => {
