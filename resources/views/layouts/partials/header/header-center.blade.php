@@ -11,7 +11,7 @@
 <nav class="sidebar-nav" aria-label="Hovedmenu">
   <a
     href="{{ route('booking-calender') }}"
-    class="nav-link{{ request()->routeIs('booking-calender') ? ' is-active' : '' }}"
+    class="nav-link nav-link-mobile-core{{ request()->routeIs('booking-calender') ? ' is-active' : '' }}"
     aria-label="Kalender"
     title="Kalender"
   >
@@ -22,7 +22,7 @@
   @if ($workShiftsEnabled)
     <a
       href="{{ route('my-shifts.index') }}"
-      class="nav-link{{ request()->routeIs('my-shifts.*') ? ' is-active' : '' }}"
+      class="nav-link nav-link-mobile-core{{ request()->routeIs('my-shifts.*') ? ' is-active' : '' }}"
       aria-label="Mine vagter"
       title="Mine vagter"
     >
@@ -32,7 +32,7 @@
   @else
     <a
       href="#"
-      class="nav-link is-locked"
+      class="nav-link nav-link-mobile-core is-locked"
       aria-disabled="true"
       aria-label="Mine vagter (bookbarhed slået fra)"
       title="Mine vagter (bookbarhed slået fra)"
@@ -48,7 +48,7 @@
   @can('availability.manage')
     <a
       href="{{ route('availability.index') }}"
-      class="nav-link{{ request()->routeIs('availability.*') ? ' is-active' : '' }}"
+      class="nav-link nav-link-mobile-extra{{ request()->routeIs('availability.*') ? ' is-active' : '' }}"
       aria-label="Tilgængelighed"
       title="Tilgængelighed"
     >
@@ -58,7 +58,7 @@
   @else
     <a
       href="#"
-      class="nav-link is-locked"
+      class="nav-link nav-link-mobile-extra is-locked"
       aria-disabled="true"
       aria-label="Tilgængelighed (ingen adgang)"
       title="Tilgængelighed (ingen adgang)"
@@ -75,7 +75,7 @@
     @can('services.manage')
       <a
         href="{{ route('services.index') }}"
-        class="nav-link{{ request()->routeIs('services.*') ? ' is-active' : '' }}"
+        class="nav-link nav-link-mobile-extra{{ request()->routeIs('services.*') ? ' is-active' : '' }}"
         aria-label="Ydelser"
         title="Ydelser"
       >
@@ -85,7 +85,7 @@
     @else
       <a
         href="#"
-        class="nav-link is-locked"
+        class="nav-link nav-link-mobile-extra is-locked"
         aria-disabled="true"
         aria-label="Ydelser (ingen adgang)"
         title="Ydelser (ingen adgang)"
@@ -109,7 +109,7 @@
       @can('settings.location.manage')
         <a
           href="{{ route('settings.index') }}"
-          class="nav-link{{ request()->routeIs('settings.*') ? ' is-active' : '' }}"
+          class="nav-link nav-link-mobile-extra{{ request()->routeIs('settings.*') ? ' is-active' : '' }}"
           aria-label="Indstillinger"
           title="Indstillinger"
         >
@@ -119,7 +119,7 @@
       @else
         <a
           href="#"
-          class="nav-link is-locked"
+          class="nav-link nav-link-mobile-extra is-locked"
           aria-disabled="true"
           aria-label="Indstillinger (ingen adgang)"
           title="Indstillinger (ingen adgang)"
@@ -135,7 +135,7 @@
       @can('users.manage')
         <a
           href="{{ route('users.index') }}"
-          class="nav-link{{ request()->routeIs('users.*') ? ' is-active' : '' }}"
+          class="nav-link nav-link-mobile-extra{{ request()->routeIs('users.*') ? ' is-active' : '' }}"
           aria-label="Administrer brugere"
           title="Administrer brugere"
         >
@@ -145,7 +145,7 @@
       @else
         <a
           href="#"
-          class="nav-link is-locked"
+          class="nav-link nav-link-mobile-extra is-locked"
           aria-disabled="true"
           aria-label="Administrer brugere (ingen adgang)"
           title="Administrer brugere (ingen adgang)"
@@ -162,7 +162,7 @@
     <div class="sidebar-bottom-profile-actions">
       <a
         href="{{ route('profile.index') }}"
-        class="sidebar-profile-link{{ request()->routeIs('profile.*') ? ' is-active' : '' }}"
+        class="sidebar-profile-link sidebar-profile-link-mobile-core{{ request()->routeIs('profile.*') ? ' is-active' : '' }}"
         aria-label="Min profil"
         title="Min profil"
       >
@@ -175,7 +175,7 @@
 
       <form method="POST" action="{{ route('logout') }}" class="sidebar-bottom-form">
         @csrf
-        <button type="submit" class="nav-link nav-link-logout" aria-label="Log ud" title="Log ud">
+        <button type="submit" class="nav-link nav-link-mobile-core nav-link-logout" aria-label="Log ud" title="Log ud">
           <img src="{{ $iconBase }}/log-out.svg" alt="" class="nav-icon" aria-hidden="true">
           <span class="sr-only">Log ud</span>
         </button>

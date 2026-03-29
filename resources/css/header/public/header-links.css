@@ -272,6 +272,14 @@
     border-radius: 12px;
   }
 
+  .nav-link-mobile-extra {
+    display: none !important;
+  }
+
+  .sidebar-admin-nav {
+    display: none !important;
+  }
+
   .sidebar-bottom {
     margin: 0;
     width: auto;
