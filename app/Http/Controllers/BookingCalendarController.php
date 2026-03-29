@@ -33,8 +33,21 @@ class BookingCalendarController extends Controller
         $locationIdFilter = $this->resolveLocationId($request, $tenantId);
         abort_if($locationIdFilter <= 0, 500, 'Ingen aktiv lokation er konfigureret.');
 
+        $tenantTimezone = Tenant::query()
+            ->whereKey($tenantId)
+            ->value('timezone');
+        $selectedLocationTimezone = Location::query()
+            ->where('tenant_id', $tenantId)
+            ->whereKey($locationIdFilter)
+            ->value('timezone');
+        $calendarTimezone = $this->resolveCalendarTimezone(
+            is_string($selectedLocationTimezone) ? $selectedLocationTimezone : null,
+            is_string($tenantTimezone) ? $tenantTimezone : null
+        );
+
         $selectedDate = $this->resolveSelectedDate(
-            (string) $request->query('date', (string) $request->query('week', ''))
+            (string) $request->query('date', (string) $request->query('week', '')),
+            $calendarTimezone
         );
         $statusFilter = $this->normalizeStatusFilter((string) $request->query('status', 'active'));
         $staffUserIdFilter = max(
@@ -43,14 +56,6 @@ class BookingCalendarController extends Controller
         );
         $serviceIdFilter = max(0, (int) $request->query('service_id', 0));
         $selectedBookingId = max(0, (int) $request->query('selected_booking', 0));
-        $selectedLocationTimezone = Location::query()
-            ->where('tenant_id', $tenantId)
-            ->whereKey($locationIdFilter)
-            ->value('timezone');
-        $calendarTimezone = $this->resolveCalendarTimezone(
-            is_string($selectedLocationTimezone) ? $selectedLocationTimezone : null,
-            null
-        );
 
         $this->autoCompleteExpiredBookings($tenantId, $locationIdFilter, $calendarTimezone);
 
@@ -120,7 +125,8 @@ class BookingCalendarController extends Controller
             $availability,
             $locationIdFilter,
             [$selectedDate->toDateString()],
-            $bookingModels
+            $bookingModels,
+            $calendarTimezone
         );
         $timeSlots = $this->buildTimeSlots(
             $slotBounds['slot_start_minutes'],
@@ -227,7 +233,7 @@ class BookingCalendarController extends Controller
 
             if ($selectedDateInput !== '') {
                 try {
-                    $selectedBookingDate = CarbonImmutable::createFromFormat('Y-m-d', $selectedDateInput, config('app.timezone'))
+                    $selectedBookingDate = CarbonImmutable::createFromFormat('Y-m-d', $selectedDateInput, $calendarTimezone)
                         ->startOfDay();
                 } catch (Throwable) {
                     $selectedBookingDate = null;
@@ -419,10 +425,19 @@ class BookingCalendarController extends Controller
         abort_if($locationId <= 0, 404, 'Ingen aktiv lokation fundet.');
 
         try {
-            $date = CarbonImmutable::createFromFormat('Y-m-d', (string) $validated['booking_date'], config('app.timezone'))
+            $locationTimezone = Location::query()
+                ->where('tenant_id', $tenantId)
+                ->whereKey($locationId)
+                ->value('timezone');
+            $calendarTimezone = $this->resolveCalendarTimezone(
+                is_string($locationTimezone) ? $locationTimezone : null,
+                null
+            );
+
+            $date = CarbonImmutable::createFromFormat('Y-m-d', (string) $validated['booking_date'], $calendarTimezone)
                 ->startOfDay();
         } catch (Throwable) {
-            $date = CarbonImmutable::now(config('app.timezone'))->startOfDay();
+            $date = CarbonImmutable::now($calendarTimezone ?? 'UTC')->startOfDay();
         }
 
         $serviceId = max(0, (int) ($validated['service_id'] ?? 0));
@@ -499,17 +514,17 @@ class BookingCalendarController extends Controller
         };
     }
 
-    private function resolveSelectedDate(string $rawDate): CarbonImmutable
+    private function resolveSelectedDate(string $rawDate, string $timezone): CarbonImmutable
     {
         if ($rawDate === '') {
-            return CarbonImmutable::now(config('app.timezone'))->startOfDay();
+            return CarbonImmutable::now($timezone)->startOfDay();
         }
 
         try {
-            return CarbonImmutable::createFromFormat('Y-m-d', $rawDate, config('app.timezone'))
+            return CarbonImmutable::createFromFormat('Y-m-d', $rawDate, $timezone)
                 ->startOfDay();
         } catch (Throwable) {
-            return CarbonImmutable::now(config('app.timezone'))->startOfDay();
+            return CarbonImmutable::now($timezone)->startOfDay();
         }
     }
 
@@ -749,14 +764,15 @@ class BookingCalendarController extends Controller
         LocationAvailability $availability,
         int $locationId,
         array $dateKeys,
-        \Illuminate\Support\Collection $bookingModels
+        \Illuminate\Support\Collection $bookingModels,
+        string $timezone
     ): array {
         $startMinutes = null;
         $endMinutes = null;
 
         foreach ($dateKeys as $dayKey) {
             try {
-                $date = CarbonImmutable::createFromFormat('Y-m-d', $dayKey, config('app.timezone'))->startOfDay();
+                $date = CarbonImmutable::createFromFormat('Y-m-d', $dayKey, $timezone)->startOfDay();
             } catch (Throwable) {
                 continue;
             }
