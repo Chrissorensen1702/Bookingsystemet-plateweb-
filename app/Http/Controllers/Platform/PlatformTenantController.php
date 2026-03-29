@@ -47,7 +47,7 @@ class PlatformTenantController extends Controller
                     ]
                 )
                 ->orderBy('name')
-                ->get(['id', 'name', 'email', 'role', 'is_bookable', 'created_at']),
+                ->get(['id', 'name', 'email', 'role', 'is_bookable', 'is_active', 'created_at']),
             'locations' => Location::query()
                 ->where('tenant_id', $tenant->id)
                 ->withCount(['users', 'bookings', 'services'])
@@ -131,6 +131,7 @@ class PlatformTenantController extends Controller
             'role' => TenantRole::OWNER->value,
             'initials' => $this->resolveInitials((string) $payload['name'], $payload['initials'] ?? null),
             'is_bookable' => (bool) ($payload['is_bookable'] ?? false),
+            'is_active' => true,
         ]);
 
         if ($user->is_bookable) {
