@@ -80,6 +80,13 @@ test('canonical public booking page renders on tenant subdomain', function () {
     $response->assertSee('Book din tid');
 });
 
+test('login domain root still renders when tenant subdomain routes are enabled', function () {
+    $response = $this->get('https://login.platebook.dk/');
+
+    $response->assertOk();
+    $response->assertSee('Log ind');
+});
+
 test('legacy public booking url redirects to canonical tenant subdomain url', function () {
     [$tenant, $location] = createPublicTenantWithLocation('chrisvirksomhed', 'bordingafdelingen');
 

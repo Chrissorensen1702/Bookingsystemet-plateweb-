@@ -22,6 +22,22 @@ use Illuminate\Support\Facades\Route;
 $loginDomain = trim((string) config('security.auth.login_domain', ''));
 $publicRootDomain = trim(RouteUrls::publicRootDomain());
 
+if ($loginDomain !== '') {
+    Route::domain($loginDomain)->group(function (): void {
+        Route::get('/', [LoginController::class, 'show'])->name('login');
+        Route::post('/login', [LoginController::class, 'store'])
+            ->middleware('throttle:login')
+            ->name('login.store');
+    });
+
+    Route::get('/login', fn () => to_route('login'));
+} else {
+    Route::get('/login', [LoginController::class, 'show'])->name('login');
+    Route::post('/login', [LoginController::class, 'store'])
+        ->middleware('throttle:login')
+        ->name('login.store');
+}
+
 if ($publicRootDomain !== '') {
     Route::domain('{tenantSlug}.'.$publicRootDomain)
         ->group(function (): void {
@@ -72,22 +88,6 @@ Route::prefix('platform')
             Route::post('/logout', [PlatformLoginController::class, 'destroy'])->name('logout');
         });
     });
-
-if ($loginDomain !== '') {
-    Route::domain($loginDomain)->group(function (): void {
-        Route::get('/', [LoginController::class, 'show'])->name('login');
-        Route::post('/login', [LoginController::class, 'store'])
-            ->middleware('throttle:login')
-            ->name('login.store');
-    });
-
-    Route::get('/login', fn () => to_route('login'));
-} else {
-    Route::get('/login', [LoginController::class, 'show'])->name('login');
-    Route::post('/login', [LoginController::class, 'store'])
-        ->middleware('throttle:login')
-        ->name('login.store');
-}
 
 Route::get('/email/verify/{id}/{hash}', function (Request $request, string $id, string $hash) {
     if (! $request->hasValidSignature()) {
