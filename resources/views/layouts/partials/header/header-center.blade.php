@@ -173,7 +173,7 @@
         @endif
       </a>
 
-      <form method="POST" action="{{ route('logout') }}" class="sidebar-bottom-form">
+      <form method="POST" action="{{ route('logout') }}" class="sidebar-bottom-form" data-csrf-submit-mode="native">
         @csrf
         <button type="submit" class="nav-link nav-link-mobile-core nav-link-logout" aria-label="Log ud" title="Log ud">
           <img src="{{ $iconBase }}/log-out.svg" alt="" class="nav-icon" aria-hidden="true">

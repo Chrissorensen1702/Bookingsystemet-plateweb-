@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\PlatformUser;
 use App\Models\User;
 use App\Support\RouteUrls;
 use Illuminate\Http\Request;
@@ -54,6 +55,14 @@ test('login page uses a versioned service worker url to bypass stale edge caches
         'meta name="pwa-sw-url" content="https://login.platebook.dk/sw.js?v='.$serviceWorkerVersion.'"',
         false
     );
+});
+
+test('employee login page marks auth submission for native redirect handling', function () {
+    $response = $this->get('https://login.platebook.dk/');
+
+    $response->assertOk();
+    $response->assertSee('action="https://login.platebook.dk/login"', false);
+    $response->assertSee('data-csrf-submit-mode="native"', false);
 });
 
 test('csrf token endpoint is available on the login domain', function () {
@@ -195,4 +204,39 @@ test('platform login page keeps its internal urls on the main app host', functio
     $response->assertOk();
     $response->assertSee('href="https://platebook.dk/platform/login"', false);
     $response->assertSee('action="https://platebook.dk/platform/login"', false);
+    $response->assertSee('data-csrf-submit-mode="native"', false);
+});
+
+test('authenticated verification notice marks logout submission for native redirect handling', function () {
+    config(['app.url' => 'https://platebook.dk']);
+
+    $user = User::factory()->create();
+
+    $response = $this
+        ->actingAs($user)
+        ->get('https://platebook.dk/email/verify');
+
+    $response->assertOk();
+    $response->assertSee('action="https://platebook.dk/logout"', false);
+    $response->assertSee('data-csrf-submit-mode="native"', false);
+});
+
+test('authenticated platform dashboard marks logout submission for native redirect handling', function () {
+    config(['app.url' => 'https://platebook.dk']);
+
+    $platformUser = PlatformUser::query()->create([
+        'name' => 'Platform Dev',
+        'email' => 'platform@example.com',
+        'password' => Hash::make('SecurePass123!'),
+        'role' => PlatformUser::ROLE_DEVELOPER,
+        'is_active' => true,
+    ]);
+
+    $response = $this
+        ->actingAs($platformUser, 'platform')
+        ->get('https://platebook.dk/platform');
+
+    $response->assertOk();
+    $response->assertSee('action="https://platebook.dk/platform/logout"', false);
+    $response->assertSee('data-csrf-submit-mode="native"', false);
 });

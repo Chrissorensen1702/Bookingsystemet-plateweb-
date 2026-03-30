@@ -40,12 +40,12 @@
           </div>
         @endif
 
-        <form class="login-form" method="POST" action="{{ route('verification.send') }}">
+        <form class="login-form" method="POST" action="{{ route('verification.send') }}" data-csrf-submit-mode="native">
           @csrf
           <button type="submit" class="login-button">Send bekræftelsesmail igen</button>
         </form>
 
-        <form class="login-form platform-logout-form" method="POST" action="{{ route('logout') }}">
+        <form class="login-form platform-logout-form" method="POST" action="{{ route('logout') }}" data-csrf-submit-mode="native">
           @csrf
           <button type="submit" class="login-button login-button-secondary">Log ud</button>
         </form>

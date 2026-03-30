@@ -31,7 +31,7 @@
           </div>
         @endif
 
-        <form class="login-form" method="POST" action="{{ route('platform.login.store') }}">
+        <form class="login-form" method="POST" action="{{ route('platform.login.store') }}" data-csrf-submit-mode="native">
           @csrf
 
           <label class="login-field">

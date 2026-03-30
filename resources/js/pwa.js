@@ -86,6 +86,8 @@ const isSameOriginPostForm = (form) => {
   return actionUrl.origin === window.location.origin;
 };
 
+const prefersNativeResubmit = (form) => form.dataset.csrfSubmitMode === 'native';
+
 window.PlateBookCsrf = {
   refreshForm: refreshFormToken,
 };
@@ -117,6 +119,11 @@ document.addEventListener('submit', (event) => {
     })
     .finally(() => {
       delete form.dataset.csrfRefreshing;
+
+      if (prefersNativeResubmit(form)) {
+        nativeSubmit.call(form);
+        return;
+      }
 
       if (typeof form.requestSubmit === 'function') {
         form.dataset.csrfFresh = '1';
