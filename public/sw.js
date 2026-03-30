@@ -1,4 +1,4 @@
-const CACHE_NAME = 'plaebooking-shell-v12';
+const CACHE_NAME = 'plaebooking-shell-v13';
 const APP_SHELL_ASSETS = [
   './',
   './site.webmanifest',
@@ -54,14 +54,10 @@ self.addEventListener('fetch', (event) => {
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
-        .then((response) => {
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, responseClone));
-          return response;
-        })
+        .then((response) => response)
         .catch(async () => {
           const cache = await caches.open(CACHE_NAME);
-          return (await cache.match(request)) || (await cache.match('./'));
+          return (await cache.match('./')) || Response.error();
         })
     );
     return;
@@ -92,22 +88,5 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  event.respondWith(
-    caches.match(request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-
-      return fetch(request)
-        .then((response) => {
-          if (response.ok && response.type === 'basic') {
-            const responseClone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, responseClone));
-          }
-
-          return response;
-        })
-        .catch(() => cachedResponse);
-    })
-  );
+  event.respondWith(fetch(request));
 });
