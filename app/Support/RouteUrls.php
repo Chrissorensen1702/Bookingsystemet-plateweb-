@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use Illuminate\Http\Request;
 use Illuminate\Routing\UrlGenerator;
 
 class RouteUrls
@@ -25,5 +26,16 @@ class RouteUrls
         return $appUrl !== ''
             ? rtrim($appUrl, '/')
             : '/';
+    }
+
+    public static function appRequest(Request $request): string
+    {
+        $generator = clone app(UrlGenerator::class);
+        $generator->useOrigin((string) config('app.url'));
+
+        $path = '/'.ltrim($request->getPathInfo(), '/');
+        $query = $request->getQueryString();
+
+        return $generator->to($path).($query !== null && $query !== '' ? '?'.$query : '');
     }
 }

@@ -59,3 +59,11 @@ test('app route helper keeps platform links on the main app host', function () {
     expect(RouteUrls::appHome())->toBe('https://platebook.dk');
     expect(RouteUrls::app('platform.login'))->toBe('https://platebook.dk/platform/login');
 });
+
+test('non-login pages on the login domain redirect back to the main app host', function () {
+    config(['app.url' => 'https://platebook.dk']);
+
+    $response = $this->get('https://login.platebook.dk/book-tid?tenant=demo');
+
+    $response->assertRedirect('https://platebook.dk/book-tid?tenant=demo');
+});
