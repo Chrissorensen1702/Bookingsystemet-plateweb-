@@ -1,4 +1,4 @@
-const CACHE_NAME = 'plaebooking-shell-v10';
+const CACHE_NAME = 'plaebooking-shell-v11';
 const APP_SHELL_ASSETS = [
   './',
   './site.webmanifest',

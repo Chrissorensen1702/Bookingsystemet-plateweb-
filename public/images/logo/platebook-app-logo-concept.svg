@@ -25,8 +25,8 @@
     </clipPath>
   </defs>
 
-  <rect x="56" y="56" width="912" height="912" rx="224" fill="url(#pb-bg)" />
-  <rect x="56" y="56" width="912" height="912" rx="224" stroke="rgb(255 255 255 / 22%)" stroke-width="2" />
+  <rect x="8" y="8" width="1008" height="1008" rx="248" fill="url(#pb-bg)" />
+  <rect x="8" y="8" width="1008" height="1008" rx="248" stroke="rgb(255 255 255 / 22%)" stroke-width="2" />
   <circle cx="770" cy="255" r="290" fill="url(#pb-glow)" />
 
   <g filter="url(#pb-card-shadow)">
