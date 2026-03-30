@@ -173,7 +173,16 @@
         @endif
       </a>
 
-      <form method="POST" action="{{ route('logout') }}" class="sidebar-bottom-form" data-csrf-submit-mode="native">
+      <form
+        method="POST"
+        action="{{ route('logout') }}"
+        class="sidebar-bottom-form"
+        data-csrf-submit-mode="native"
+        data-auth-state-url="{{ route('auth.state') }}"
+        data-auth-state-guard="web"
+        data-auth-state-goal="guest"
+        data-auth-state-redirect="{{ \App\Support\RouteUrls::loginHome() }}"
+      >
         @csrf
         <button type="submit" class="nav-link nav-link-mobile-core nav-link-logout" aria-label="Log ud" title="Log ud">
           <img src="{{ $iconBase }}/log-out.svg" alt="" class="nav-icon" aria-hidden="true">

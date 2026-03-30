@@ -45,7 +45,16 @@
           <button type="submit" class="login-button">Send bekræftelsesmail igen</button>
         </form>
 
-        <form class="login-form platform-logout-form" method="POST" action="{{ route('logout') }}" data-csrf-submit-mode="native">
+        <form
+          class="login-form platform-logout-form"
+          method="POST"
+          action="{{ route('logout') }}"
+          data-csrf-submit-mode="native"
+          data-auth-state-url="{{ route('auth.state') }}"
+          data-auth-state-guard="web"
+          data-auth-state-goal="guest"
+          data-auth-state-redirect="{{ \App\Support\RouteUrls::loginHome() }}"
+        >
           @csrf
           <button type="submit" class="login-button login-button-secondary">Log ud</button>
         </form>

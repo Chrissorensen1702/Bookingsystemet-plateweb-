@@ -47,6 +47,10 @@
           method="POST"
           action="{{ route('login.store') }}"
           data-csrf-submit-mode="native"
+          data-auth-state-url="{{ route('auth.state') }}"
+          data-auth-state-guard="web"
+          data-auth-state-goal="authenticated"
+          data-auth-state-redirect="{{ \App\Support\RouteUrls::appHome() }}"
           data-passkey-login
           data-passkey-csrf="{{ csrf_token() }}"
           data-passkey-options-url="{{ route('webauthn.auth.options') }}"

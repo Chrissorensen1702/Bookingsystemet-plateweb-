@@ -31,7 +31,15 @@
 
       <div class="platform-top-actions">
         <a href="{{ route('platform.dashboard') }}" class="platform-link-button">Tilbage til oversigt</a>
-        <form method="POST" action="{{ route('platform.logout') }}" data-csrf-submit-mode="native">
+        <form
+          method="POST"
+          action="{{ route('platform.logout') }}"
+          data-csrf-submit-mode="native"
+          data-auth-state-url="{{ route('auth.state') }}"
+          data-auth-state-guard="platform"
+          data-auth-state-goal="guest"
+          data-auth-state-redirect="{{ route('platform.login') }}"
+        >
           @csrf
           <button type="submit" class="platform-button">Log ud</button>
         </form>

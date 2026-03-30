@@ -63,6 +63,8 @@ test('employee login page marks auth submission for native redirect handling', f
     $response->assertOk();
     $response->assertSee('action="https://login.platebook.dk/login"', false);
     $response->assertSee('data-csrf-submit-mode="native"', false);
+    $response->assertSee('data-auth-state-url="https://login.platebook.dk/auth-state"', false);
+    $response->assertSee('data-auth-state-goal="authenticated"', false);
 });
 
 test('csrf token endpoint is available on the login domain', function () {
@@ -77,6 +79,18 @@ test('csrf token endpoint is available on the login domain', function () {
     expect($cacheControl)->toContain('no-cache');
     expect($cacheControl)->toContain('must-revalidate');
     expect($cacheControl)->toContain('max-age=0');
+});
+
+test('auth state endpoint is available on the login domain', function () {
+    $response = $this->get('https://login.platebook.dk/auth-state');
+
+    $response->assertOk();
+    $response->assertJson([
+        'guard' => 'web',
+        'authenticated' => false,
+    ]);
+
+    expect(parse_url((string) $response->json('redirect'), PHP_URL_HOST))->toBe('login.platebook.dk');
 });
 
 test('login domain responses disable caching and clear legacy host-only auth cookies', function () {
@@ -205,6 +219,7 @@ test('platform login page keeps its internal urls on the main app host', functio
     $response->assertSee('href="https://platebook.dk/platform/login"', false);
     $response->assertSee('action="https://platebook.dk/platform/login"', false);
     $response->assertSee('data-csrf-submit-mode="native"', false);
+    $response->assertSee('data-auth-state-guard="platform"', false);
 });
 
 test('authenticated verification notice marks logout submission for native redirect handling', function () {
@@ -219,6 +234,7 @@ test('authenticated verification notice marks logout submission for native redir
     $response->assertOk();
     $response->assertSee('action="https://platebook.dk/logout"', false);
     $response->assertSee('data-csrf-submit-mode="native"', false);
+    $response->assertSee('data-auth-state-goal="guest"', false);
 });
 
 test('authenticated platform dashboard marks logout submission for native redirect handling', function () {
@@ -239,4 +255,5 @@ test('authenticated platform dashboard marks logout submission for native redire
     $response->assertOk();
     $response->assertSee('action="https://platebook.dk/platform/logout"', false);
     $response->assertSee('data-csrf-submit-mode="native"', false);
+    $response->assertSee('data-auth-state-goal="guest"', false);
 });

@@ -31,7 +31,16 @@
           </div>
         @endif
 
-        <form class="login-form" method="POST" action="{{ route('platform.login.store') }}" data-csrf-submit-mode="native">
+        <form
+          class="login-form"
+          method="POST"
+          action="{{ route('platform.login.store') }}"
+          data-csrf-submit-mode="native"
+          data-auth-state-url="{{ route('auth.state') }}"
+          data-auth-state-guard="platform"
+          data-auth-state-goal="authenticated"
+          data-auth-state-redirect="{{ route('platform.dashboard') }}"
+        >
           @csrf
 
           <label class="login-field">

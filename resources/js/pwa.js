@@ -8,6 +8,7 @@ const disableServiceWorker = document
   ?.getAttribute('content') === '1';
 const csrfTokenUrl = new URL('/csrf-token', window.location.origin).toString();
 const nativeSubmit = HTMLFormElement.prototype.submit;
+const authStatePollDelays = [250, 400, 700, 1000, 1400, 1800];
 
 const resetServiceWorkers = async () => {
   const registrations = await navigator.serviceWorker.getRegistrations();
@@ -88,6 +89,80 @@ const isSameOriginPostForm = (form) => {
 
 const prefersNativeResubmit = (form) => form.dataset.csrfSubmitMode === 'native';
 
+const authStateGoalReached = (goal, authenticated) => (
+  (goal === 'authenticated' && authenticated)
+  || (goal === 'guest' && !authenticated)
+);
+
+const startAuthStateRedirectFallback = (form) => {
+  const authStateUrl = form.dataset.authStateUrl || '';
+  const authStateGoal = form.dataset.authStateGoal || '';
+
+  if (authStateUrl === '' || authStateGoal === '') {
+    return;
+  }
+
+  const pollUrl = new URL(authStateUrl, window.location.origin);
+  const guard = form.dataset.authStateGuard || '';
+
+  if (guard !== '') {
+    pollUrl.searchParams.set('guard', guard);
+  }
+
+  let cancelled = false;
+  const stopPolling = () => {
+    cancelled = true;
+  };
+
+  window.addEventListener('pagehide', stopPolling, { once: true });
+
+  const poll = async (attempt = 0) => {
+    if (cancelled) {
+      return;
+    }
+
+    try {
+      const response = await fetch(pollUrl.toString(), {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        credentials: 'same-origin',
+        cache: 'no-store',
+      });
+
+      if (response.ok) {
+        const payload = await response.json().catch(() => null);
+        const authenticated = payload?.authenticated === true;
+
+        if (authStateGoalReached(authStateGoal, authenticated)) {
+          const redirect = typeof payload?.redirect === 'string' && payload.redirect.trim() !== ''
+            ? payload.redirect
+            : (form.dataset.authStateRedirect || window.location.href);
+
+          window.location.assign(redirect);
+          return;
+        }
+      }
+    } catch {
+      // Ignore intermittent auth-state polling failures.
+    }
+
+    if (attempt >= authStatePollDelays.length - 1) {
+      return;
+    }
+
+    window.setTimeout(() => {
+      void poll(attempt + 1);
+    }, authStatePollDelays[attempt]);
+  };
+
+  window.setTimeout(() => {
+    void poll();
+  }, authStatePollDelays[0]);
+};
+
 window.PlateBookCsrf = {
   refreshForm: refreshFormToken,
 };
@@ -121,6 +196,7 @@ document.addEventListener('submit', (event) => {
       delete form.dataset.csrfRefreshing;
 
       if (prefersNativeResubmit(form)) {
+        startAuthStateRedirectFallback(form);
         nativeSubmit.call(form);
         return;
       }

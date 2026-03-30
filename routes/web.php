@@ -17,6 +17,7 @@ use App\Models\User;
 use App\Support\RouteUrls;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 $loginDomain = trim((string) config('security.auth.login_domain', ''));
@@ -46,6 +47,30 @@ Route::get('/csrf-token', function (Request $request) {
         ->header('Pragma', 'no-cache')
         ->header('Expires', '0');
 })->name('csrf.token');
+
+Route::get('/auth-state', function (Request $request) {
+    $guard = $request->string('guard')->lower()->value() === 'platform'
+        ? 'platform'
+        : 'web';
+
+    $authenticated = $guard === 'platform'
+        ? Auth::guard('platform')->check()
+        : Auth::check();
+
+    $redirect = $guard === 'platform'
+        ? ($authenticated ? RouteUrls::platform('dashboard') : RouteUrls::platform('login'))
+        : ($authenticated ? RouteUrls::appHome() : RouteUrls::loginHome());
+
+    return response()
+        ->json([
+            'guard' => $guard,
+            'authenticated' => $authenticated,
+            'redirect' => $redirect,
+        ])
+        ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+        ->header('Pragma', 'no-cache')
+        ->header('Expires', '0');
+})->name('auth.state');
 
 if ($publicRootDomain !== '') {
     Route::domain('{tenantSlug}.'.$publicRootDomain)
