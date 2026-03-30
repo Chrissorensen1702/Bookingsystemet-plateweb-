@@ -166,8 +166,14 @@
           <span>{{ $tenant->bookings_count }} bookinger</span>
         </div>
 
+        @php
+          $publicLocation = $locations->firstWhere('is_active', true);
+        @endphp
         <div class="platform-location-actions">
-          <a href="{{ route('public-booking.create', ['tenant' => $tenant->slug]) }}" class="platform-link-button">Åbn offentlig booking</a>
+          <a
+            href="{{ $publicLocation?->slug ? \App\Support\RouteUrls::publicBooking((string) $tenant->slug, (string) $publicLocation->slug) : route('public-booking.tenant', ['tenantSlug' => $tenant->slug]) }}"
+            class="platform-link-button"
+          >Åbn offentlig booking</a>
         </div>
 
         <div class="platform-danger-zone">

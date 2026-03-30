@@ -96,6 +96,7 @@
           : '';
 
         $initialStep = $requiresServiceCategories ? 1 : 2;
+        $publicBookingQuery = ($isPreview ?? false) ? ['preview' => 1] : [];
       @endphp
       @if ($errors->hasAny(['name', 'email', 'phone', 'notes']))
         @php
@@ -151,13 +152,14 @@
             data-initial-step="{{ $initialStep }}"
             data-require-categories="{{ $requiresServiceCategories ? '1' : '0' }}"
             data-selected-service-requires-staff-selection="{{ $selectedServiceRequiresStaffSelection ? '1' : '0' }}"
-            data-time-options-url="{{ route('public-booking.time-options', array_filter([
-              'tenant' => filled($tenantQuery ?? null) ? $tenantQuery : null,
-            ])) }}"
-            action="{{ route('public-booking.store', array_filter([
-              'tenant' => filled($tenantQuery ?? null) ? $tenantQuery : null,
-              'location_id' => $selectedLocationId,
-            ])) }}"
+            data-time-options-url="{{ route('public-booking.time-options', array_merge([
+              'tenantSlug' => $tenant->slug,
+              'locationSlug' => $selectedLocation->slug,
+            ], $publicBookingQuery)) }}"
+            action="{{ route('public-booking.store', array_merge([
+              'tenantSlug' => $tenant->slug,
+              'locationSlug' => $selectedLocation->slug,
+            ], $publicBookingQuery)) }}"
           >
             @csrf
             <input
@@ -499,19 +501,21 @@
             </div>
 
             @if ($locations->count() > 1)
-              <form method="GET" class="public-booking-location-switch public-booking-location-switch-side">
-                @if (filled($tenantQuery ?? null))
-                  <input type="hidden" name="tenant" value="{{ $tenantQuery }}">
-                @endif
-
-                <select id="location-switch" name="location_id" onchange="this.form.submit()" aria-label="Lokation">
+              <div class="public-booking-location-switch public-booking-location-switch-side">
+                <select id="location-switch" onchange="window.location.href = this.value" aria-label="Lokation">
                   @foreach ($locations as $location)
-                    <option value="{{ $location->id }}" @selected((int) $selectedLocationId === (int) $location->id)>
+                    <option
+                      value="{{ route('public-booking.create', array_merge([
+                        'tenantSlug' => $tenant->slug,
+                        'locationSlug' => $location->slug,
+                      ], $publicBookingQuery)) }}"
+                      @selected((int) $selectedLocationId === (int) $location->id)
+                    >
                       {{ $location->name }}
                     </option>
                   @endforeach
                 </select>
-              </form>
+              </div>
             @endif
 
             <div class="public-booking-hours-list">

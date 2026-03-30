@@ -94,24 +94,45 @@ class AppServiceProvider extends ServiceProvider
         });
 
         RateLimiter::for('public-booking-view', function (Request $request): Limit {
-            $tenant = mb_strtolower(trim((string) $request->query('tenant', '')));
+            $tenant = mb_strtolower(trim((string) (
+                $request->route('tenantSlug')
+                ?? $request->query('tenant')
+                ?? $request->getHost()
+            )));
 
             return Limit::perMinute(90)->by($request->ip().'|'.$tenant);
         });
 
         RateLimiter::for('public-booking-time-options', function (Request $request): Limit {
-            $tenant = mb_strtolower(trim((string) $request->query('tenant', '')));
-            $locationId = (int) $request->query('location_id', 0);
+            $tenant = mb_strtolower(trim((string) (
+                $request->route('tenantSlug')
+                ?? $request->query('tenant')
+                ?? $request->getHost()
+            )));
+            $locationScope = trim((string) (
+                $request->route('locationSlug')
+                ?? $request->query('location_id')
+                ?? $request->input('location_id')
+                ?? ''
+            ));
 
-            return Limit::perMinute(120)->by($request->ip().'|'.$tenant.'|'.$locationId);
+            return Limit::perMinute(120)->by($request->ip().'|'.$tenant.'|'.$locationScope);
         });
 
         RateLimiter::for('public-booking-store', function (Request $request): Limit {
-            $tenant = mb_strtolower(trim((string) $request->query('tenant', '')));
-            $locationId = (int) $request->input('location_id', 0);
+            $tenant = mb_strtolower(trim((string) (
+                $request->route('tenantSlug')
+                ?? $request->query('tenant')
+                ?? $request->getHost()
+            )));
+            $locationScope = trim((string) (
+                $request->route('locationSlug')
+                ?? $request->input('location_id')
+                ?? ''
+            ));
             $email = mb_strtolower(trim((string) $request->input('email', '')));
 
-            return Limit::perMinute(12)->by($request->ip().'|'.$tenant.'|'.$locationId.'|'.$email);
+            return Limit::perMinute(12)->by($request->ip().'|'.$tenant.'|'.$locationScope.'|'.$email);
         });
 
         Gate::define('bookings.manage', fn (User $user): bool => $user->hasPermission('bookings.manage'));

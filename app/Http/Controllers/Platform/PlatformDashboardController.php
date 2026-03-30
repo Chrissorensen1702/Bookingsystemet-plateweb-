@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Location;
 use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
+use App\Support\RouteUrls;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -45,7 +46,18 @@ class PlatformDashboardController extends Controller
 
         $payload = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'slug' => ['nullable', 'string', 'max:255', 'regex:/^[a-z0-9-]+$/', Rule::unique('tenants', 'slug')],
+            'slug' => [
+                'nullable',
+                'string',
+                'max:255',
+                'regex:/^[a-z0-9-]+$/',
+                Rule::unique('tenants', 'slug'),
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (RouteUrls::isReservedPublicSubdomain((string) $value)) {
+                        $fail('Denne slug er reserveret og kan ikke bruges.');
+                    }
+                },
+            ],
             'timezone' => ['required', 'timezone'],
             'plan_id' => ['required', Rule::exists('subscription_plans', 'id')->where(
                 fn ($query) => $query->where('is_active', true)
@@ -89,7 +101,10 @@ class PlatformDashboardController extends Controller
         $candidate = $base;
         $suffix = 1;
 
-        while (Tenant::query()->where('slug', $candidate)->exists()) {
+        while (
+            RouteUrls::isReservedPublicSubdomain($candidate)
+            || Tenant::query()->where('slug', $candidate)->exists()
+        ) {
             $candidate = "{$base}-{$suffix}";
             $suffix++;
         }

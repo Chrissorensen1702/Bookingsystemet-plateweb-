@@ -401,7 +401,6 @@ if (
   };
 
   const refreshTimeOptions = async () => {
-    const locationId = locationField.value.trim();
     const bookingDate = dateField.value.trim();
     const serviceId = serviceField.value.trim();
     serviceRequiresStaffSelection = resolveServiceRequiresStaffSelection();
@@ -413,7 +412,7 @@ if (
       ? selectedStaffUserId
       : '';
 
-    if (!locationId || !bookingDate || !serviceId) {
+    if (!bookingDate || !serviceId) {
       renderTimeOptions([], '');
       syncStaffOptionsFromServiceSelection();
       return;
@@ -428,7 +427,6 @@ if (
 
     try {
       const url = new URL(form.dataset.timeOptionsUrl || '', window.location.origin);
-      url.searchParams.set('location_id', locationId);
       url.searchParams.set('booking_date', bookingDate);
       url.searchParams.set('service_id', serviceId);
 

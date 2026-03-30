@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use Closure;
+use App\Support\RouteUrls;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -16,17 +17,23 @@ class AddSecurityHeaders
             return $response;
         }
 
-        $allowSameOriginFrame = $this->allowsSameOriginFrame($request);
+        $frameAncestors = $this->frameAncestors($request);
 
         $response->headers->set('X-Content-Type-Options', 'nosniff');
-        $response->headers->set('X-Frame-Options', $allowSameOriginFrame ? 'SAMEORIGIN' : 'DENY');
+        if ($frameAncestors === ["'self'"]) {
+            $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
+        } elseif ($frameAncestors === ["'none'"]) {
+            $response->headers->set('X-Frame-Options', 'DENY');
+        } else {
+            $response->headers->remove('X-Frame-Options');
+        }
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
         $response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()');
         $response->headers->set('Cross-Origin-Opener-Policy', 'same-origin');
         $response->headers->set('Cross-Origin-Resource-Policy', 'same-origin');
         $response->headers->set('X-Permitted-Cross-Domain-Policies', 'none');
 
-        $contentSecurityPolicy = $this->buildContentSecurityPolicy($allowSameOriginFrame);
+        $contentSecurityPolicy = $this->buildContentSecurityPolicy($frameAncestors);
 
         if ($contentSecurityPolicy !== '') {
             $response->headers->set('Content-Security-Policy', $contentSecurityPolicy);
@@ -39,7 +46,10 @@ class AddSecurityHeaders
         return $response;
     }
 
-    private function buildContentSecurityPolicy(bool $allowSameOriginFrame = false): string
+    /**
+     * @param list<string> $frameAncestors
+     */
+    private function buildContentSecurityPolicy(array $frameAncestors): string
     {
         if (! (bool) config('security.headers.csp.enabled', true)) {
             return '';
@@ -77,7 +87,7 @@ class AddSecurityHeaders
             "default-src 'self'",
             "base-uri 'self'",
             "form-action 'self'",
-            $allowSameOriginFrame ? "frame-ancestors 'self'" : "frame-ancestors 'none'",
+            'frame-ancestors ' . implode(' ', $frameAncestors),
             "object-src 'none'",
             'script-src ' . implode(' ', array_unique($scriptSources)),
             'style-src ' . implode(' ', array_unique($styleSources)),
@@ -91,16 +101,38 @@ class AddSecurityHeaders
         return implode('; ', $directives) . ';';
     }
 
-    private function allowsSameOriginFrame(Request $request): bool
+    /**
+     * @return list<string>
+     */
+    private function frameAncestors(Request $request): array
     {
         if (! $request->isMethod('GET')) {
-            return false;
+            return ["'none'"];
         }
 
-        if (! $request->routeIs('public-booking.create')) {
-            return false;
+        if (! $request->routeIs('public-booking.create', 'public-booking.tenant')) {
+            return ["'none'"];
         }
 
-        return $request->boolean('preview');
+        if (! $request->boolean('preview')) {
+            return ["'none'"];
+        }
+
+        $ancestors = [];
+        $appOrigin = RouteUrls::appOrigin();
+
+        if (is_string($appOrigin) && $appOrigin !== '') {
+            $ancestors[] = $appOrigin;
+        }
+
+        $requestOrigin = $request->getSchemeAndHttpHost();
+
+        if ($requestOrigin !== '' && ! in_array($requestOrigin, $ancestors, true)) {
+            $ancestors[] = $requestOrigin;
+        }
+
+        return $ancestors !== []
+            ? $ancestors
+            : ["'self'"];
     }
 }

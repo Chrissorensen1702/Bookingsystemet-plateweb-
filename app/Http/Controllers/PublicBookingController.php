@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Support\BookingSlotManager;
 use App\Support\BookingSmsNotifier;
 use App\Support\LocationAvailability;
+use App\Support\RouteUrls;
 use App\Support\UploadsStorage;
 use App\Support\WorkShiftAvailability;
 use Carbon\CarbonImmutable;
@@ -45,30 +46,12 @@ class PublicBookingController extends Controller
         WorkShiftAvailability $shiftAvailability
     ): View
     {
-        $tenantId = $this->resolveTenantId($request);
-        abort_if($tenantId <= 0, 500, 'Ingen aktiv tenant er konfigureret.');
-        $tenant = Tenant::query()
-            ->with(['plan:id,code,name,requires_powered_by'])
-            ->select([
-                'id',
-                'name',
-                'slug',
-                'plan_id',
-                'public_brand_name',
-                'public_logo_path',
-                'public_logo_alt',
-                'public_primary_color',
-                'public_accent_color',
-                'show_powered_by',
-                'require_service_categories',
-                'work_shifts_enabled',
-            ])
-            ->findOrFail($tenantId);
+        $tenant = $this->resolvePublicTenant($request, true);
+        $tenantId = (int) $tenant->id;
         $requireServiceCategories = (bool) ($tenant->require_service_categories ?? true);
         $workShiftsEnabled = (bool) ($tenant->work_shifts_enabled ?? true);
-        $selectedLocationId = $this->resolveLocationId($request, $tenantId);
-        abort_if($selectedLocationId <= 0, 500, 'Ingen aktiv lokation er konfigureret.');
-        $tenantQuery = trim((string) $request->query('tenant', ''));
+        $selectedLocation = $this->resolvePublicLocation($request, $tenant);
+        $selectedLocationId = (int) $selectedLocation->id;
         $locations = Location::query()
             ->where('tenant_id', $tenantId)
             ->where('is_active', true)
@@ -86,7 +69,6 @@ class PublicBookingController extends Controller
                 'public_contact_phone',
                 'public_contact_email',
             ]);
-        $selectedLocation = $locations->firstWhere('id', $selectedLocationId);
         $bookingIntroText = trim((string) ($selectedLocation?->public_booking_intro_text ?? ''));
         $openingHoursByDay = LocationOpeningHour::query()
             ->where('location_id', $selectedLocationId)
@@ -281,11 +263,35 @@ class PublicBookingController extends Controller
                 ? $this->bookingWindowLabelForService($selectedService)
                 : 'Ingen bookingbegrænsning valgt endnu',
             'selectedServiceRequiresStaffSelection' => $selectedServiceRequiresStaffSelection,
-            'tenantQuery' => $tenantQuery !== '' ? $tenantQuery : null,
+            'tenant' => $tenant,
+            'isPreview' => $request->boolean('preview'),
             'publicBrand' => $publicBrand,
             'requiresServiceCategories' => $requireServiceCategories,
             'workShiftsEnabled' => $workShiftsEnabled,
         ]);
+    }
+
+    public function tenantHome(Request $request): RedirectResponse
+    {
+        $tenant = $this->resolvePublicTenant($request);
+        $location = $this->resolvePrimaryPublicLocation($tenant);
+
+        abort_if(! $location instanceof Location, 404, 'Ingen aktiv lokation er konfigureret.');
+
+        return redirect()->to($this->publicBookingUrl($tenant, $location, $request));
+    }
+
+    public function legacyRedirect(Request $request): RedirectResponse
+    {
+        $tenant = $this->resolvePublicTenant($request);
+        $locationId = max(0, (int) $request->query('location_id', 0));
+        $location = $locationId > 0
+            ? $this->resolveLegacyPublicLocation($tenant, $locationId)
+            : $this->resolvePrimaryPublicLocation($tenant);
+
+        abort_if(! $location instanceof Location, 404, 'Ingen aktiv lokation er konfigureret.');
+
+        return redirect()->to($this->publicBookingUrl($tenant, $location, $request, ['tenant', 'location_id']));
     }
 
     public function timeOptions(
@@ -295,20 +301,14 @@ class PublicBookingController extends Controller
         WorkShiftAvailability $shiftAvailability
     ): JsonResponse
     {
-        $tenantId = $this->resolveTenantId($request);
-        abort_if($tenantId <= 0, 500, 'Ingen aktiv tenant er konfigureret.');
+        $tenant = $this->resolvePublicTenant($request);
+        $tenantId = (int) $tenant->id;
         $workShiftsEnabled = (bool) (Tenant::query()
             ->whereKey($tenantId)
             ->value('work_shifts_enabled') ?? true);
+        $location = $this->resolvePublicLocation($request, $tenant);
 
         $validated = $request->validate([
-            'location_id' => [
-                'required',
-                'integer',
-                Rule::exists('locations', 'id')->where(
-                    fn ($query) => $query->where('tenant_id', $tenantId)->where('is_active', true)
-                ),
-            ],
             'booking_date' => ['required', 'date', 'after_or_equal:today'],
             'service_id' => [
                 'nullable',
@@ -326,10 +326,6 @@ class PublicBookingController extends Controller
             ],
         ]);
 
-        $location = Location::query()
-            ->where('tenant_id', $tenantId)
-            ->where('is_active', true)
-            ->findOrFail((int) $validated['location_id']);
         $locationTimezone = $this->resolveTimezone($location->timezone);
         $date = $this->resolveBookingDate((string) $validated['booking_date'], $locationTimezone);
         $serviceId = max(0, (int) ($validated['service_id'] ?? 0));
@@ -481,22 +477,17 @@ class PublicBookingController extends Controller
         BookingSmsNotifier $smsNotifier
     ): RedirectResponse
     {
-        $tenantId = $this->resolveTenantId($request);
-        abort_if($tenantId <= 0, 500, 'Ingen aktiv tenant er konfigureret.');
+        $tenant = $this->resolvePublicTenant($request);
+        $tenantId = (int) $tenant->id;
         $tenantSettings = Tenant::query()
             ->whereKey($tenantId)
             ->first(['require_service_categories', 'work_shifts_enabled']);
         $requireServiceCategories = (bool) ($tenantSettings?->require_service_categories ?? true);
         $workShiftsEnabled = (bool) ($tenantSettings?->work_shifts_enabled ?? true);
+        $location = $this->resolvePublicLocation($request, $tenant);
+        $locationId = (int) $location->id;
 
         $validated = $request->validate([
-            'location_id' => [
-                'required',
-                'integer',
-                Rule::exists('locations', 'id')->where(
-                    fn ($query) => $query->where('tenant_id', $tenantId)->where('is_active', true)
-                ),
-            ],
             'service_category_id' => $requireServiceCategories
                 ? [
                     'required',
@@ -533,13 +524,6 @@ class PublicBookingController extends Controller
             'phone' => ['required', 'string', 'max:50'],
             'notes' => ['nullable', 'string', 'max:1000'],
         ]);
-
-        $locationId = (int) $validated['location_id'];
-
-        $location = Location::query()
-            ->where('tenant_id', $tenantId)
-            ->where('is_active', true)
-            ->findOrFail($locationId);
         $locationTimezone = $this->resolveTimezone($location->timezone);
 
         $service = Service::queryForLocation($tenantId, $locationId)
@@ -769,17 +753,8 @@ class PublicBookingController extends Controller
             report($exception);
         }
 
-        $tenantQuery = trim((string) $request->query('tenant', ''));
-        $redirectParams = [
-            'location_id' => $location->id,
-        ];
-
-        if ($tenantQuery !== '') {
-            $redirectParams['tenant'] = $tenantQuery;
-        }
-
         return redirect()
-            ->route('public-booking.create', $redirectParams)
+            ->to($this->publicBookingUrl($tenant, $location, $request))
             ->with('status', 'Din booking er oprettet.')
             ->with('booking_summary', [
                 'service' => $service->name,
@@ -787,6 +762,102 @@ class PublicBookingController extends Controller
                 'date' => $startsAt->format('d.m.Y'),
                 'time' => $startsAt->format('H:i'),
             ]);
+    }
+
+    private function resolvePublicTenant(Request $request, bool $withPlan = false): Tenant
+    {
+        $tenantSlug = trim((string) (
+            $request->route('tenantSlug')
+            ?? $request->query('tenant')
+            ?? ''
+        ));
+
+        abort_if($tenantSlug === '', 404, 'Ingen aktiv virksomhed er angivet.');
+
+        $query = Tenant::query()
+            ->where('slug', $tenantSlug)
+            ->where('is_active', true);
+
+        if ($withPlan) {
+            $query->with(['plan:id,code,name,requires_powered_by'])
+                ->select([
+                    'id',
+                    'name',
+                    'slug',
+                    'plan_id',
+                    'public_brand_name',
+                    'public_logo_path',
+                    'public_logo_alt',
+                    'public_primary_color',
+                    'public_accent_color',
+                    'show_powered_by',
+                    'require_service_categories',
+                    'work_shifts_enabled',
+                ]);
+        }
+
+        return $query->firstOrFail();
+    }
+
+    private function resolvePublicLocation(Request $request, Tenant $tenant): Location
+    {
+        $locationSlug = trim((string) ($request->route('locationSlug') ?? ''));
+
+        if ($locationSlug !== '') {
+            return Location::query()
+                ->where('tenant_id', (int) $tenant->id)
+                ->where('is_active', true)
+                ->where('slug', $locationSlug)
+                ->firstOrFail();
+        }
+
+        $locationId = max(0, (int) ($request->input('location_id', $request->query('location_id', 0))));
+
+        abort_if($locationId <= 0, 404, 'Ingen aktiv lokation er angivet.');
+
+        return $this->resolveLegacyPublicLocation($tenant, $locationId);
+    }
+
+    private function resolveLegacyPublicLocation(Tenant $tenant, int $locationId): Location
+    {
+        return Location::query()
+            ->where('tenant_id', (int) $tenant->id)
+            ->where('is_active', true)
+            ->whereKey($locationId)
+            ->firstOrFail();
+    }
+
+    private function resolvePrimaryPublicLocation(Tenant $tenant): ?Location
+    {
+        return Location::query()
+            ->where('tenant_id', (int) $tenant->id)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->first();
+    }
+
+    /**
+     * @param list<string> $exclude
+     */
+    private function publicBookingUrl(Tenant $tenant, Location $location, Request $request, array $exclude = []): string
+    {
+        return RouteUrls::publicBooking(
+            (string) $tenant->slug,
+            (string) $location->slug,
+            $this->publicBookingQuery($request, $exclude)
+        );
+    }
+
+    /**
+     * @param list<string> $exclude
+     * @return array<string, mixed>
+     */
+    private function publicBookingQuery(Request $request, array $exclude = []): array
+    {
+        return collect($request->query())
+            ->except(array_merge(['tenant', 'location_id'], $exclude))
+            ->filter(static fn (mixed $value): bool => $value !== null && $value !== '')
+            ->all();
     }
 
     private function resolveCustomer(array $validated, int $tenantId): Customer

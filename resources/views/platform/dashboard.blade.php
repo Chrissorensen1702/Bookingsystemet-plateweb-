@@ -112,7 +112,7 @@
 
               <div class="platform-location-actions">
                 <a href="{{ route('platform.tenants.show', $tenant) }}" class="platform-link-button">Vælg forretning</a>
-                <a href="{{ route('public-booking.create', ['tenant' => $tenant->slug]) }}" class="platform-link-button">Offentlig booking</a>
+                <a href="{{ route('public-booking.tenant', ['tenantSlug' => $tenant->slug]) }}" class="platform-link-button">Offentlig booking</a>
               </div>
             </article>
           @empty

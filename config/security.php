@@ -8,6 +8,31 @@ return [
         'login_domain' => env('AUTH_LOGIN_DOMAIN'),
     ],
 
+    'domains' => [
+        // Root domain used for tenant public booking subdomains, e.g. "platebook.dk".
+        'public_root' => env(
+            'PUBLIC_ROOT_DOMAIN',
+            parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST) ?: 'localhost'
+        ),
+        'reserved_public_subdomains' => array_values(array_filter(array_map(
+            static fn (string $value): string => trim($value),
+            explode(
+                ',',
+                (string) env('RESERVED_PUBLIC_SUBDOMAINS', 'login,www,app,api,platform')
+            )
+        ))),
+        'reserved_public_location_slugs' => array_values(array_filter(array_map(
+            static fn (string $value): string => trim($value),
+            explode(
+                ',',
+                (string) env(
+                    'RESERVED_PUBLIC_LOCATION_SLUGS',
+                    'login,platform,email,mine-vagter,ydelser,tilgaengelighed,indstillinger,profil,brugere,book-tid,up'
+                )
+            )
+        ))),
+    ],
+
     'password' => [
         // If true, passwords are checked against known leaked-password data.
         // Keep false in local/dev if you want faster validation without external checks.

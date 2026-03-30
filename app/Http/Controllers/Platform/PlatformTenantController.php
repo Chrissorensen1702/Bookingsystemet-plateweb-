@@ -11,6 +11,7 @@ use App\Models\Service;
 use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Support\RouteUrls;
 use App\Support\UploadsStorage;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
@@ -74,6 +75,11 @@ class PlatformTenantController extends Controller
                 'max:255',
                 'regex:/^[a-z0-9-]+$/',
                 Rule::unique('tenants', 'slug')->ignore($tenant->id),
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (RouteUrls::isReservedPublicSubdomain((string) $value)) {
+                        $fail('Denne slug er reserveret og kan ikke bruges.');
+                    }
+                },
             ],
             'timezone' => ['required', 'timezone'],
             'plan_id' => ['required', Rule::exists('subscription_plans', 'id')->where(
@@ -182,6 +188,11 @@ class PlatformTenantController extends Controller
                 Rule::unique('locations', 'slug')->where(
                     fn ($query) => $query->where('tenant_id', $tenant->id)
                 ),
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (RouteUrls::isReservedPublicLocationSlug((string) $value)) {
+                        $fail('Denne lokationsslug er reserveret og kan ikke bruges.');
+                    }
+                },
             ],
             'timezone' => ['required', 'timezone'],
             'address_line_1' => ['nullable', 'string', 'max:255'],
@@ -267,6 +278,11 @@ class PlatformTenantController extends Controller
                 Rule::unique('locations', 'slug')
                     ->where(fn ($query) => $query->where('tenant_id', $tenant->id))
                     ->ignore($location->id),
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (RouteUrls::isReservedPublicLocationSlug((string) $value)) {
+                        $fail('Denne lokationsslug er reserveret og kan ikke bruges.');
+                    }
+                },
             ],
             'timezone' => ['required', 'timezone'],
             'address_line_1' => ['nullable', 'string', 'max:255'],
@@ -401,10 +417,13 @@ class PlatformTenantController extends Controller
         $candidate = $base;
         $suffix = 1;
 
-        while (Location::query()
-            ->where('tenant_id', $tenant->id)
-            ->where('slug', $candidate)
-            ->exists()) {
+        while (
+            RouteUrls::isReservedPublicLocationSlug($candidate)
+            || Location::query()
+                ->where('tenant_id', $tenant->id)
+                ->where('slug', $candidate)
+                ->exists()
+        ) {
             $candidate = "{$base}-{$suffix}";
             $suffix++;
         }

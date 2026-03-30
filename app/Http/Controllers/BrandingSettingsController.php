@@ -6,6 +6,7 @@ use App\Models\Location;
 use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Support\RouteUrls;
 use App\Support\UploadsStorage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -77,11 +78,9 @@ class BrandingSettingsController extends Controller
                 $tenant->public_logo_path,
                 (int) $tenant->id
             ),
-            'publicBookingPreviewUrl' => route('public-booking.create', array_filter([
-                'tenant' => $tenant->slug ?: null,
-                'location_id' => $selectedLocationId > 0 ? $selectedLocationId : null,
-                'preview' => 1,
-            ])),
+            'publicBookingPreviewUrl' => $selectedLocation?->slug
+                ? RouteUrls::publicBooking((string) $tenant->slug, (string) $selectedLocation->slug, ['preview' => 1])
+                : RouteUrls::publicBooking((string) $tenant->slug, null, ['preview' => 1]),
             'planName' => (string) ($plan?->name ?? ''),
             'planRequiresPoweredBy' => (bool) ($plan?->requires_powered_by ?? false),
         ]);

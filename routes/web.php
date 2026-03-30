@@ -14,22 +14,42 @@ use App\Http\Controllers\PublicBookingController;
 use App\Http\Controllers\ServiceManagementController;
 use App\Http\Controllers\UserManagementController;
 use App\Models\User;
+use App\Support\RouteUrls;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 $loginDomain = trim((string) config('security.auth.login_domain', ''));
+$publicRootDomain = trim(RouteUrls::publicRootDomain());
+
+if ($publicRootDomain !== '') {
+    Route::domain('{tenantSlug}.'.$publicRootDomain)
+        ->group(function (): void {
+            Route::get('/', [PublicBookingController::class, 'tenantHome'])
+                ->middleware('throttle:public-booking-view')
+                ->name('public-booking.tenant');
+            Route::get('/{locationSlug}', [PublicBookingController::class, 'create'])
+                ->middleware('throttle:public-booking-view')
+                ->name('public-booking.create');
+            Route::get('/{locationSlug}/time-options', [PublicBookingController::class, 'timeOptions'])
+                ->middleware('throttle:public-booking-time-options')
+                ->name('public-booking.time-options');
+            Route::post('/{locationSlug}', [PublicBookingController::class, 'store'])
+                ->middleware('throttle:public-booking-store')
+                ->name('public-booking.store');
+        });
+}
 
 // GLOBALE URL ROUTES
-Route::get('/book-tid', [PublicBookingController::class, 'create'])
+Route::get('/book-tid', [PublicBookingController::class, 'legacyRedirect'])
     ->middleware('throttle:public-booking-view')
-    ->name('public-booking.create');
+    ->name('public-booking.legacy');
 Route::get('/book-tid/time-options', [PublicBookingController::class, 'timeOptions'])
     ->middleware('throttle:public-booking-time-options')
-    ->name('public-booking.time-options');
+    ->name('public-booking.legacy.time-options');
 Route::post('/book-tid', [PublicBookingController::class, 'store'])
     ->middleware('throttle:public-booking-store')
-    ->name('public-booking.store');
+    ->name('public-booking.legacy.store');
 
 Route::prefix('platform')
     ->name('platform.')
