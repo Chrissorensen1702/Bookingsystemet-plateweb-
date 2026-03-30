@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   @include('layouts.partials.pwa-meta')
-  <meta name="pwa-disable-sw" content="1">
   <title>Login | Bookingsystem</title>
   @vite([
     'resources/css/app-login.css',

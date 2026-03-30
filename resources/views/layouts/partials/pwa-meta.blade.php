@@ -7,3 +7,4 @@
 <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('images/logo/pwa-192-v2.png') }}">
 <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/logo/apple-touch-icon-v2.png') }}">
 <meta name="pwa-sw-url" content="{{ asset('sw.js') }}">
+<meta name="pwa-disable-sw" content="1">

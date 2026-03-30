@@ -4,6 +4,7 @@ use App\Models\User;
 use App\Support\RouteUrls;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 beforeEach(function (): void {
     putenv('AUTH_LOGIN_DOMAIN=login.platebook.dk');
@@ -58,9 +59,10 @@ test('login domain responses disable caching and clear legacy host-only auth coo
     expect($cacheControl)->toContain('max-age=0');
 
     $cookies = collect($response->headers->getCookies());
+    $legacySessionCookie = Str::slug((string) config('app.name', 'laravel')).'-session';
 
-    expect($cookies->contains(function ($cookie): bool {
-        return $cookie->getName() === config('session.cookie')
+    expect($cookies->contains(function ($cookie) use ($legacySessionCookie): bool {
+        return $cookie->getName() === $legacySessionCookie
             && $cookie->getDomain() === null
             && $cookie->isCleared();
     }))->toBeTrue();

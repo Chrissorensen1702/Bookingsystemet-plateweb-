@@ -2,6 +2,14 @@
 
 use Illuminate\Support\Str;
 
+$sessionCookieBase = Str::slug((string) env('APP_NAME', 'laravel')).'-session';
+$sessionCookieVersion = trim((string) env('SESSION_COOKIE_VERSION', 'v2'));
+$sessionCookieName = $sessionCookieBase;
+
+if ($sessionCookieVersion !== '') {
+    $sessionCookieName .= '-'.$sessionCookieVersion;
+}
+
 return [
 
     /*
@@ -129,7 +137,7 @@ return [
 
     'cookie' => env(
         'SESSION_COOKIE',
-        Str::slug((string) env('APP_NAME', 'laravel')).'-session'
+        $sessionCookieName
     ),
 
     /*
