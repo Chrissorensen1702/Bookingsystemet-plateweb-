@@ -64,11 +64,16 @@ function createPublicTenantWithLocation(string $tenantSlug, string $locationSlug
 test('public booking routes use tenant subdomain and location slug', function () {
     [$tenant, $location] = createPublicTenantWithLocation('chrisvirksomhed', 'bordingafdelingen');
 
-    expect(route('public-booking.tenant', ['tenantSlug' => $tenant->slug]))->toBe('https://chrisvirksomhed.platebook.dk');
-    expect(route('public-booking.create', [
+    $tenantUrl = route('public-booking.tenant', ['tenantSlug' => $tenant->slug]);
+    $locationUrl = route('public-booking.create', [
         'tenantSlug' => $tenant->slug,
         'locationSlug' => $location->slug,
-    ]))->toBe('https://chrisvirksomhed.platebook.dk/bordingafdelingen');
+    ]);
+
+    expect(parse_url($tenantUrl, PHP_URL_HOST))->toBe('chrisvirksomhed.platebook.dk');
+    expect(parse_url($tenantUrl, PHP_URL_PATH) ?: '/')->toBe('/');
+    expect(parse_url($locationUrl, PHP_URL_HOST))->toBe('chrisvirksomhed.platebook.dk');
+    expect(parse_url($locationUrl, PHP_URL_PATH))->toBe('/bordingafdelingen');
 });
 
 test('canonical public booking page renders on tenant subdomain', function () {
@@ -78,6 +83,28 @@ test('canonical public booking page renders on tenant subdomain', function () {
 
     $response->assertOk();
     $response->assertSee('Book din tid');
+});
+
+test('preview public booking page skips pwa chrome inside embeds', function () {
+    [$tenant, $location] = createPublicTenantWithLocation('chrisvirksomhed', 'bordingafdelingen');
+
+    $response = $this->get("https://{$tenant->slug}.platebook.dk/{$location->slug}?preview=1");
+
+    $response->assertOk();
+    $response->assertSee('Book din tid');
+    $response->assertDontSee('name="pwa-sw-url"', false);
+    $response->assertDontSee('name="pwa-disable-sw"', false);
+});
+
+test('legacy preview route renders on the app host for iframe embeds', function () {
+    [$tenant, $location] = createPublicTenantWithLocation('chrisvirksomhed', 'bordingafdelingen');
+
+    $response = $this->get("https://platebook.dk/book-tid/preview?tenant={$tenant->slug}&location_id={$location->id}&preview=1");
+
+    $response->assertOk();
+    $response->assertSee('Book din tid');
+    $response->assertHeaderMissing('X-Frame-Options');
+    expect((string) $response->headers->get('Content-Security-Policy'))->toContain('frame-ancestors https://platebook.dk');
 });
 
 test('login domain root still renders when tenant subdomain routes are enabled', function () {

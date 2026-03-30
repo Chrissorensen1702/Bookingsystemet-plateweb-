@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\User;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Routing\UrlGenerator;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
@@ -30,6 +31,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $appUrl = trim((string) config('app.url', ''));
+        $appUrlPath = trim((string) parse_url($appUrl, PHP_URL_PATH), '/');
+
+        // Support local installs that run from a subdirectory such as /bookingsystem/public.
+        if ($appUrl !== '' && $appUrlPath !== '') {
+            app(UrlGenerator::class)->useAssetOrigin(rtrim($appUrl, '/'));
+        }
+
         Password::defaults(function (): Password {
             $rule = Password::min(12)
                 ->letters()

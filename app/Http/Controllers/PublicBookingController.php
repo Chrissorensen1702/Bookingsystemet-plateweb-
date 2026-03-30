@@ -283,6 +283,14 @@ class PublicBookingController extends Controller
 
     public function legacyRedirect(Request $request): RedirectResponse
     {
+        if ($request->boolean('preview')) {
+            return redirect()->to(route('public-booking.legacy.preview', array_filter([
+                'tenant' => $request->query('tenant'),
+                'location_id' => $request->query('location_id'),
+                'preview' => 1,
+            ], static fn (mixed $value): bool => $value !== null && $value !== '')));
+        }
+
         $tenant = $this->resolvePublicTenant($request);
         $locationId = max(0, (int) $request->query('location_id', 0));
         $location = $locationId > 0
@@ -292,6 +300,17 @@ class PublicBookingController extends Controller
         abort_if(! $location instanceof Location, 404, 'Ingen aktiv lokation er konfigureret.');
 
         return redirect()->to($this->publicBookingUrl($tenant, $location, $request, ['tenant', 'location_id']));
+    }
+
+    public function legacyPreview(
+        Request $request,
+        LocationAvailability $availability,
+        BookingSlotManager $slotManager,
+        WorkShiftAvailability $shiftAvailability
+    ): View {
+        abort_unless($request->boolean('preview'), 404);
+
+        return $this->create($request, $availability, $slotManager, $shiftAvailability);
     }
 
     public function timeOptions(
@@ -755,7 +774,7 @@ class PublicBookingController extends Controller
 
         return redirect()
             ->to($this->publicBookingUrl($tenant, $location, $request))
-            ->with('status', 'Din booking er oprettet.')
+            ->with('status', $this->bookingConfirmationMessage($location))
             ->with('booking_summary', [
                 'service' => $service->name,
                 'staff_member' => $staffMember->name,
@@ -846,6 +865,15 @@ class PublicBookingController extends Controller
             (string) $location->slug,
             $this->publicBookingQuery($request, $exclude)
         );
+    }
+
+    private function bookingConfirmationMessage(Location $location): string
+    {
+        $customMessage = trim((string) ($location->public_booking_confirmation_text ?? ''));
+
+        return $customMessage !== ''
+            ? $customMessage
+            : 'Din booking er oprettet.';
     }
 
     /**

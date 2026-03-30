@@ -3,12 +3,126 @@
   height: 100%;
   min-height: 0;
   box-sizing: border-box;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 12px;
+  overflow: hidden;
 }
 
 .booking-home-body.settings-body .main-content {
   height: 100vh;
   overflow-y: hidden;
   overflow-x: hidden;
+}
+
+.settings-page-nav {
+  display: flex;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 8px;
+  padding: 10px 8px 8px;
+  border: 1px solid rgb(0 0 0 / 1);
+  border-radius: 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+  background:
+    linear-gradient(
+      180deg,
+      rgb(var(--color-primary-rgb) / 0.16) 0%,
+      rgb(var(--color-primary-rgb) / 0.08) 42%,
+      rgb(var(--color-surface-rgb) / 0.96) 100%
+    );
+  box-shadow: 0 10px 24px rgb(var(--color-text-rgb) / 0.08);
+}
+
+.settings-page-nav-link {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 10px 14px;
+  border: 1px solid rgb(var(--color-border-rgb) / 0.9);
+  border-radius: 12px;
+  background: rgb(var(--color-surface-alt-rgb) / 0.56);
+  color: var(--color-text);
+  text-decoration: none;
+  transition: border-color 0.16s ease, background-color 0.16s ease, color 0.16s ease, transform 0.16s ease;
+}
+
+.settings-page-nav-link:hover,
+.settings-page-nav-link:focus-visible {
+  border-color: rgb(var(--color-primary-rgb) / 0.92);
+  background: rgb(var(--color-primary-rgb) / 0.12);
+  color: rgb(var(--color-primary-rgb) / 1);
+  transform: translateY(-1px);
+}
+
+.settings-page-nav-link.is-active {
+  border-color: rgb(var(--color-primary-rgb) / 0.94);
+  background: rgb(var(--color-primary-rgb) / 0.18);
+  color: rgb(var(--color-primary-rgb) / 1);
+}
+
+.settings-page-nav-link.has-badge {
+  padding-right: 56px;
+}
+
+.settings-page-nav-icon {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  opacity: 0.88;
+}
+
+.settings-page-nav-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.settings-page-nav-copy strong {
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.settings-page-nav-copy small {
+  font-size: 11px;
+  line-height: 1.3;
+  color: var(--color-text-soft);
+}
+
+.settings-page-nav-link:hover .settings-page-nav-copy small,
+.settings-page-nav-link:focus-visible .settings-page-nav-copy small,
+.settings-page-nav-link.is-active .settings-page-nav-copy small {
+  color: rgb(var(--color-primary-rgb) / 0.86);
+}
+
+.settings-page-nav-badge {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 18px;
+  padding: 0 7px;
+  border-radius: 999px;
+  border: 1px solid rgb(185 28 28 / 0.42);
+  background: rgb(239 68 68 / 0.1);
+  color: rgb(153 27 27 / 1);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 
 .settings-layout {
@@ -19,6 +133,10 @@
   height: 100%;
   align-items: stretch;
   box-sizing: border-box;
+}
+
+.settings-page.is-view-mode .settings-layout {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .settings-card {
@@ -33,6 +151,11 @@
   height: 100%;
   max-height: 100%;
   box-sizing: border-box;
+}
+
+[data-settings-panel][hidden],
+.settings-card[hidden] {
+  display: none !important;
 }
 
 .settings-layout > .settings-card {
@@ -95,6 +218,28 @@
 
 .settings-location-form {
   margin: 0;
+}
+
+.settings-local-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(320px, 0.88fr);
+  gap: 20px;
+  min-height: 0;
+  align-items: start;
+}
+
+.settings-local-main,
+.settings-preview-panel {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.settings-preview-panel {
+  padding: 18px;
+  border: 1px solid rgb(var(--color-border-rgb) / 0.9);
+  border-radius: 14px;
+  background: rgb(var(--color-surface-alt-rgb) / 0.2);
 }
 
 .settings-grid {
@@ -489,6 +634,10 @@
   .settings-layout {
     grid-template-columns: 1fr;
   }
+
+  .settings-local-layout {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 980px) {
@@ -501,6 +650,10 @@
   .settings-layout {
     height: auto;
     min-height: auto;
+  }
+
+  .settings-page {
+    overflow: visible;
   }
 
   .settings-card {
@@ -516,6 +669,15 @@
 @media (max-width: 760px) {
   .settings-card {
     padding: 18px;
+  }
+
+  .settings-page-nav {
+    padding: 8px 6px 6px;
+  }
+
+  .settings-page-nav-link {
+    min-height: 52px;
+    padding: 9px 12px;
   }
 
   .settings-grid-two {

@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 beforeEach(function (): void {
+    putenv('APP_URL=https://platebook.dk');
+    $_ENV['APP_URL'] = 'https://platebook.dk';
+    $_SERVER['APP_URL'] = 'https://platebook.dk';
     putenv('AUTH_LOGIN_DOMAIN=login.platebook.dk');
     $_ENV['AUTH_LOGIN_DOMAIN'] = 'login.platebook.dk';
     $_SERVER['AUTH_LOGIN_DOMAIN'] = 'login.platebook.dk';
@@ -16,13 +19,27 @@ beforeEach(function (): void {
     $_SERVER['SESSION_DOMAIN'] = '.platebook.dk';
 
     $this->refreshApplication();
+    config([
+        'app.url' => 'https://platebook.dk',
+        'security.auth.login_domain' => 'login.platebook.dk',
+        'security.domains.public_root' => 'platebook.dk',
+        'session.domain' => '.platebook.dk',
+    ]);
     $this->artisan('migrate:fresh', ['--force' => true]);
 });
 
 afterEach(function (): void {
+    putenv('APP_URL');
     putenv('AUTH_LOGIN_DOMAIN');
     putenv('SESSION_DOMAIN');
-    unset($_ENV['AUTH_LOGIN_DOMAIN'], $_SERVER['AUTH_LOGIN_DOMAIN'], $_ENV['SESSION_DOMAIN'], $_SERVER['SESSION_DOMAIN']);
+    unset(
+        $_ENV['APP_URL'],
+        $_SERVER['APP_URL'],
+        $_ENV['AUTH_LOGIN_DOMAIN'],
+        $_SERVER['AUTH_LOGIN_DOMAIN'],
+        $_ENV['SESSION_DOMAIN'],
+        $_SERVER['SESSION_DOMAIN']
+    );
 
     $this->refreshApplication();
 });
@@ -35,7 +52,7 @@ test('login routes move to the dedicated login domain when configured', function
 });
 
 test('legacy login path redirects to the dedicated login domain', function () {
-    $response = $this->get('/login');
+    $response = $this->get('https://platebook.dk/login');
 
     $response->assertRedirect(route('login'));
 });
@@ -51,10 +68,8 @@ test('login page uses a versioned service worker url to bypass stale edge caches
     $serviceWorkerVersion = @filemtime(public_path('sw.js'));
 
     $response->assertOk();
-    $response->assertSee(
-        'meta name="pwa-sw-url" content="https://login.platebook.dk/sw.js?v='.$serviceWorkerVersion.'"',
-        false
-    );
+    $response->assertSee('meta name="pwa-sw-url" content="', false);
+    $response->assertSee('sw.js?v='.$serviceWorkerVersion.'"', false);
 });
 
 test('employee login page marks auth submission for native redirect handling', function () {

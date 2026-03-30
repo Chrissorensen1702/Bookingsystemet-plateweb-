@@ -5,8 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   @php
     $brand = $publicBrand ?? null;
+    $isEmbeddedPreview = (bool) ($isPreview ?? false);
   @endphp
-  @include('layouts.partials.pwa-meta')
+  @unless ($isEmbeddedPreview)
+    @include('layouts.partials.pwa-meta')
+  @endunless
   @if (! empty($brand['name']))
     <meta name="apple-mobile-web-app-title" content="{{ $brand['name'] }}">
   @endif
@@ -32,9 +35,11 @@
       }
     </style>
   @endif
-  @vite(['resources/css/app-booking.css', 'resources/js/pwa.js', 'resources/js/pages/public-booking.js'])
+  @vite($isEmbeddedPreview
+    ? ['resources/css/app-booking.css', 'resources/js/pages/public-booking.js']
+    : ['resources/css/app-booking.css', 'resources/js/pwa.js', 'resources/js/pages/public-booking.js'])
 </head>
-<body class="public-booking-body">
+<body class="public-booking-body{{ $isEmbeddedPreview ? ' public-booking-body-preview' : '' }}">
   @if (! empty($brand['show_powered_by']))
     <div class="public-booking-powered-header" role="note" aria-label="Powered by PlateBooking">
       <div class="public-booking-powered-header-inner">
@@ -97,6 +102,24 @@
 
         $initialStep = $requiresServiceCategories ? 1 : 2;
         $publicBookingQuery = ($isPreview ?? false) ? ['preview' => 1] : [];
+        $timeOptionsUrl = ($isPreview ?? false)
+          ? route('public-booking.legacy.time-options', array_merge([
+            'tenant' => $tenant->slug,
+            'location_id' => $selectedLocationId,
+          ], $publicBookingQuery))
+          : route('public-booking.time-options', array_merge([
+            'tenantSlug' => $tenant->slug,
+            'locationSlug' => $selectedLocation->slug,
+          ], $publicBookingQuery));
+        $storeUrl = ($isPreview ?? false)
+          ? route('public-booking.legacy.store', array_merge([
+            'tenant' => $tenant->slug,
+            'location_id' => $selectedLocationId,
+          ], $publicBookingQuery))
+          : route('public-booking.store', array_merge([
+            'tenantSlug' => $tenant->slug,
+            'locationSlug' => $selectedLocation->slug,
+          ], $publicBookingQuery));
       @endphp
       @if ($errors->hasAny(['name', 'email', 'phone', 'notes']))
         @php
@@ -152,14 +175,8 @@
             data-initial-step="{{ $initialStep }}"
             data-require-categories="{{ $requiresServiceCategories ? '1' : '0' }}"
             data-selected-service-requires-staff-selection="{{ $selectedServiceRequiresStaffSelection ? '1' : '0' }}"
-            data-time-options-url="{{ route('public-booking.time-options', array_merge([
-              'tenantSlug' => $tenant->slug,
-              'locationSlug' => $selectedLocation->slug,
-            ], $publicBookingQuery)) }}"
-            action="{{ route('public-booking.store', array_merge([
-              'tenantSlug' => $tenant->slug,
-              'locationSlug' => $selectedLocation->slug,
-            ], $publicBookingQuery)) }}"
+            data-time-options-url="{{ $timeOptionsUrl }}"
+            action="{{ $storeUrl }}"
           >
             @csrf
             <input

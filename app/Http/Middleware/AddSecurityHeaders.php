@@ -110,7 +110,7 @@ class AddSecurityHeaders
             return ["'none'"];
         }
 
-        if (! $request->routeIs('public-booking.create', 'public-booking.tenant')) {
+        if (! $request->routeIs('public-booking.create', 'public-booking.tenant', 'public-booking.legacy.preview')) {
             return ["'none'"];
         }
 

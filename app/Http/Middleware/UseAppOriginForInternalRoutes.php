@@ -12,14 +12,14 @@ class UseAppOriginForInternalRoutes
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $appOrigin = RouteUrls::appOrigin();
+        $appBaseUrl = RouteUrls::appBaseUrl();
 
         if (
-            $appOrigin !== null
+            $appBaseUrl !== null
             && ! RouteUrls::isPublicTenantHost($request->getHost())
             && mb_strtolower($request->getHost()) !== mb_strtolower(RouteUrls::loginHost())
         ) {
-            app(UrlGenerator::class)->useOrigin($appOrigin);
+            app(UrlGenerator::class)->useOrigin($appBaseUrl);
         }
 
         return $next($request);

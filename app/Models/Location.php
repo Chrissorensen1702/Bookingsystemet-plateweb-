@@ -22,6 +22,7 @@ class Location extends Model
         'postal_code',
         'city',
         'public_booking_intro_text',
+        'public_booking_confirmation_text',
         'public_contact_phone',
         'public_contact_email',
         'is_active',

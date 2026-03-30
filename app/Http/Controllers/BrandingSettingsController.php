@@ -17,6 +17,7 @@ use Illuminate\View\View;
 class BrandingSettingsController extends Controller
 {
     private const OWNER_BRANDING_UPLOAD_ROOT = 'tenant-branding';
+    private const SETTINGS_VIEWS = ['location', 'branding'];
 
     public function index(Request $request): View
     {
@@ -58,6 +59,7 @@ class BrandingSettingsController extends Controller
                 'postal_code',
                 'city',
                 'public_booking_intro_text',
+                'public_booking_confirmation_text',
                 'public_contact_phone',
                 'public_contact_email',
             ]);
@@ -72,15 +74,18 @@ class BrandingSettingsController extends Controller
             'locations' => $locations,
             'selectedLocation' => $selectedLocation,
             'selectedLocationId' => $selectedLocationId,
+            'activeSettingsView' => $this->resolveSettingsView($request),
             'canManageGlobal' => $canManageGlobal,
             'isLocationManager' => $isLocationManager,
             'publicLogoPreviewUrl' => $this->resolvePublicLogoPreviewUrl(
                 $tenant->public_logo_path,
                 (int) $tenant->id
             ),
-            'publicBookingPreviewUrl' => $selectedLocation?->slug
-                ? RouteUrls::publicBooking((string) $tenant->slug, (string) $selectedLocation->slug, ['preview' => 1])
-                : RouteUrls::publicBooking((string) $tenant->slug, null, ['preview' => 1]),
+            'publicBookingPreviewUrl' => route('public-booking.legacy.preview', array_filter([
+                'tenant' => (string) $tenant->slug,
+                'location_id' => $selectedLocationId > 0 ? $selectedLocationId : null,
+                'preview' => 1,
+            ], static fn (mixed $value): bool => $value !== null && $value !== '')),
             'planName' => (string) ($plan?->name ?? ''),
             'planRequiresPoweredBy' => (bool) ($plan?->requires_powered_by ?? false),
         ]);
@@ -113,7 +118,9 @@ class BrandingSettingsController extends Controller
                             ->where('is_active', true)
                     ),
                 ],
+                'location_name' => ['required', 'string', 'max:255'],
                 'location_public_booking_intro_text' => ['nullable', 'string', 'max:500'],
+                'location_public_booking_confirmation_text' => ['nullable', 'string', 'max:500'],
                 'location_address_line_1' => ['nullable', 'string', 'max:255'],
                 'location_address_line_2' => ['nullable', 'string', 'max:255'],
                 'location_postal_code' => ['nullable', 'string', 'max:20'],
@@ -131,7 +138,9 @@ class BrandingSettingsController extends Controller
                 ->where('tenant_id', $tenantId)
                 ->whereKey($introLocationId)
                 ->update([
+                    'name' => trim((string) $introPayload['location_name']),
                     'public_booking_intro_text' => $this->nullableTrim($introPayload['location_public_booking_intro_text'] ?? null),
+                    'public_booking_confirmation_text' => $this->nullableTrim($introPayload['location_public_booking_confirmation_text'] ?? null),
                     'address_line_1' => $this->nullableTrim($introPayload['location_address_line_1'] ?? null),
                     'address_line_2' => $this->nullableTrim($introPayload['location_address_line_2'] ?? null),
                     'postal_code' => $this->nullableTrim($introPayload['location_postal_code'] ?? null),
@@ -141,7 +150,11 @@ class BrandingSettingsController extends Controller
                 ]);
 
             return redirect()
-                ->route('settings.index', ['location_id' => $introLocationId])
+                ->route('settings.index', $this->settingsRedirectParameters(
+                    $request,
+                    $introLocationId,
+                    'location'
+                ))
                 ->with('status', 'Lokationsindstillinger er opdateret.');
         }
 
@@ -152,12 +165,28 @@ class BrandingSettingsController extends Controller
 
         if (! $canManageGlobal) {
             return redirect()
-                ->route('settings.index', ['location_id' => $redirectLocationId])
+                ->route('settings.index', $this->settingsRedirectParameters(
+                    $request,
+                    $redirectLocationId,
+                    'branding'
+                ))
                 ->withErrors(['settings' => 'Du har ikke adgang til at ændre globale brandingindstillinger.']);
         }
 
         $payload = $request->validate([
             'public_brand_name' => ['nullable', 'string', 'max:120'],
+            'slug' => [
+                'required',
+                'string',
+                'max:255',
+                'regex:/^[a-z0-9-]+$/',
+                Rule::unique('tenants', 'slug')->ignore($tenant->id),
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (RouteUrls::isReservedPublicSubdomain((string) $value)) {
+                        $fail('Denne slug er reserveret og kan ikke bruges.');
+                    }
+                },
+            ],
             'public_logo_alt' => ['nullable', 'string', 'max:120'],
             'public_primary_color' => ['nullable', 'string', 'regex:/^#[A-Fa-f0-9]{6}$/'],
             'public_accent_color' => ['nullable', 'string', 'regex:/^#[A-Fa-f0-9]{6}$/'],
@@ -182,7 +211,11 @@ class BrandingSettingsController extends Controller
             ]);
 
             return redirect()
-                ->route('settings.index', ['location_id' => $redirectLocationId])
+                ->route('settings.index', $this->settingsRedirectParameters(
+                    $request,
+                    $redirectLocationId,
+                    'branding'
+                ))
                 ->with('status', 'Branding er nulstillet. Virksomheden vises uden eget logo, indtil et nyt uploades.');
         }
 
@@ -204,6 +237,7 @@ class BrandingSettingsController extends Controller
 
         $tenant->update([
             'public_brand_name' => $this->nullableTrim($payload['public_brand_name'] ?? null),
+            'slug' => trim((string) $payload['slug']),
             'public_logo_path' => $publicLogoPath,
             'public_logo_alt' => $this->nullableTrim($payload['public_logo_alt'] ?? null),
             'public_primary_color' => $this->normalizeHexColor($payload['public_primary_color'] ?? null),
@@ -216,8 +250,32 @@ class BrandingSettingsController extends Controller
         ]);
 
         return redirect()
-            ->route('settings.index', ['location_id' => $redirectLocationId])
+            ->route('settings.index', $this->settingsRedirectParameters(
+                $request,
+                $redirectLocationId,
+                'branding'
+            ))
             ->with('status', 'Branding er opdateret.');
+    }
+
+    private function resolveSettingsView(Request $request, string $fallback = 'location'): string
+    {
+        $requestedView = trim((string) $request->query('settings_view', $request->input('settings_view', $fallback)));
+
+        return in_array($requestedView, self::SETTINGS_VIEWS, true)
+            ? $requestedView
+            : $fallback;
+    }
+
+    /**
+     * @return array{location_id: int, settings_view: string}
+     */
+    private function settingsRedirectParameters(Request $request, int $locationId, string $fallbackView): array
+    {
+        return [
+            'location_id' => $locationId,
+            'settings_view' => $this->resolveSettingsView($request, $fallbackView),
+        ];
     }
 
     private function resolveLockedLocationId(Request $request, int $tenantId): int

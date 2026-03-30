@@ -94,6 +94,9 @@ if ($publicRootDomain !== '') {
 Route::get('/book-tid', [PublicBookingController::class, 'legacyRedirect'])
     ->middleware('throttle:public-booking-view')
     ->name('public-booking.legacy');
+Route::get('/book-tid/preview', [PublicBookingController::class, 'legacyPreview'])
+    ->middleware('throttle:public-booking-view')
+    ->name('public-booking.legacy.preview');
 Route::get('/book-tid/time-options', [PublicBookingController::class, 'timeOptions'])
     ->middleware('throttle:public-booking-time-options')
     ->name('public-booking.legacy.time-options');

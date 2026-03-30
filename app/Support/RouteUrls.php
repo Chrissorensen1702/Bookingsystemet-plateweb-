@@ -30,6 +30,15 @@ class RouteUrls
             : '/';
     }
 
+    public static function appBaseUrl(): ?string
+    {
+        $appUrl = trim((string) config('app.url', ''));
+
+        return $appUrl !== ''
+            ? rtrim($appUrl, '/')
+            : null;
+    }
+
     public static function appOrigin(): ?string
     {
         return self::originForHost(self::appHost());
@@ -42,13 +51,13 @@ class RouteUrls
 
     public static function appRequest(Request $request): string
     {
-        $appOrigin = self::appOrigin();
+        $appBaseUrl = self::appBaseUrl();
 
-        if ($appOrigin === null) {
+        if ($appBaseUrl === null) {
             return $request->getRequestUri();
         }
 
-        return self::requestOnOrigin($request, $appOrigin);
+        return self::requestOnOrigin($request, $appBaseUrl);
     }
 
     public static function loginHost(): string

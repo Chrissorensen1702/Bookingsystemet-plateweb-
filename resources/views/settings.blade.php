@@ -12,9 +12,13 @@
   @php
     $isPoweredByLocked = (bool) ($planRequiresPoweredBy ?? false);
     $activePlanName = trim((string) ($planName ?? ''));
+    $publicRootDomain = trim(\App\Support\RouteUrls::publicRootDomain());
     $locations = $locations ?? collect();
     $selectedLocationId = (int) ($selectedLocationId ?? 0);
     $selectedLocation = $selectedLocation ?? null;
+    $activeSettingsView = in_array((string) ($activeSettingsView ?? 'location'), ['location', 'branding'], true)
+      ? (string) $activeSettingsView
+      : 'location';
     $canManageGlobal = (bool) ($canManageGlobal ?? false);
     $isLocationManager = (bool) ($isLocationManager ?? false);
     $globalSettingsError = $errors->first('settings');
@@ -22,18 +26,46 @@
       ->reject(static fn (string $key): bool => $key === 'settings')
       ->map(fn (string $key): string => (string) $errors->first($key))
       ->first();
+    $settingsViewUrl = static function (string $view) use ($selectedLocationId): string {
+      return route('settings.index', array_merge(request()->query(), [
+        'location_id' => $selectedLocationId,
+        'settings_view' => $view,
+      ]));
+    };
   @endphp
 
-  <section class="settings-page">
+  <section class="settings-page is-view-mode">
+    <nav class="settings-page-nav" aria-label="Indstillingskategorier">
+      <a href="{{ $settingsViewUrl('location') }}" class="settings-page-nav-link{{ $activeSettingsView === 'location' ? ' is-active' : '' }}">
+        <img src="{{ asset('images/icon-pack/lucide/icons/store.svg') }}" alt="" class="settings-page-nav-icon">
+        <span class="settings-page-nav-copy">
+          <strong>Lokale indstillinger</strong>
+          <small>Adresse, intro og offentlig kontakt</small>
+        </span>
+      </a>
+
+      <a href="{{ $settingsViewUrl('branding') }}" class="settings-page-nav-link{{ $activeSettingsView === 'branding' ? ' is-active' : '' }}{{ $canManageGlobal ? '' : ' has-badge' }}">
+        <img src="{{ asset('images/icon-pack/lucide/icons/palette.svg') }}" alt="" class="settings-page-nav-icon">
+        <span class="settings-page-nav-copy">
+          <strong>Globale indstillinger</strong>
+          <small>Farver, logo, domæne og slug</small>
+        </span>
+        @if (! $canManageGlobal)
+          <span class="settings-page-nav-badge">Owner</span>
+        @endif
+      </a>
+
+    </nav>
+
     <div class="settings-layout">
-      <div class="settings-card">
+      <div class="settings-card" data-settings-panel="location" @if($activeSettingsView !== 'location') hidden @endif>
         <div class="settings-section-head">
           <div>
             <p class="settings-eyebrow">Indstillinger</p>
-            <h1>Branding for offentlig booking</h1>
+            <h1>Lokationsindstillinger</h1>
           </div>
           <p class="settings-text">
-            Global branding styres centralt. Lokationstekster og adresser styres pr. afdeling.
+            Opdater introtekst, adresse og kontaktoplysninger for den lokation kunderne booker hos.
           </p>
         </div>
 
@@ -49,121 +81,202 @@
           </div>
         @endif
 
-        @if ($locations->count() > 1 && ! $isLocationManager)
-          <form method="GET" class="settings-location-form">
-            <label class="settings-field">
-              <span>Vælg lokation (lokale indstillinger)</span>
-              <select name="location_id" onchange="this.form.requestSubmit()">
-                @foreach ($locations as $location)
-                  <option value="{{ $location->id }}" @selected($selectedLocationId === (int) $location->id)>
-                    {{ $location->name }}
-                  </option>
-                @endforeach
-              </select>
-            </label>
-          </form>
-        @elseif ($isLocationManager && $selectedLocation)
-          <div class="settings-alert settings-alert-scope" role="status">
-            Lokationschef: du redigerer lokale indstillinger for <strong>{{ $selectedLocation->name }}</strong>.
+        <div class="settings-local-layout">
+          <div class="settings-local-main">
+            @if ($locations->count() > 1 && ! $isLocationManager)
+              <form method="GET" class="settings-location-form">
+                <input type="hidden" name="settings_view" value="location">
+                <label class="settings-field">
+                  <span>Vælg lokation (lokale indstillinger)</span>
+                  <select name="location_id" onchange="this.form.requestSubmit()">
+                    @foreach ($locations as $location)
+                      <option value="{{ $location->id }}" @selected($selectedLocationId === (int) $location->id)>
+                        {{ $location->name }}
+                      </option>
+                    @endforeach
+                  </select>
+                </label>
+              </form>
+            @elseif ($isLocationManager && $selectedLocation)
+              <div class="settings-alert settings-alert-scope" role="status">
+                Lokationschef: du redigerer lokale indstillinger for <strong>{{ $selectedLocation->name }}</strong>.
+              </div>
+            @endif
+
+            <form class="settings-form settings-form-local" method="POST" action="{{ route('settings.update') }}">
+              @csrf
+              @method('PATCH')
+              <input type="hidden" name="update_booking_intro" value="1">
+              <input type="hidden" name="location_id" value="{{ $selectedLocationId }}">
+              <input type="hidden" name="settings_view" value="location">
+
+              <section class="settings-block settings-block-local">
+                <div class="settings-block-head">
+                  <span>Lokationsindstillinger</span>
+                </div>
+
+                @if ($selectedLocation)
+                  <p class="settings-text">Aktiv lokation: <strong>{{ $selectedLocation->name }}</strong></p>
+                @endif
+
+                <div class="settings-grid">
+                  <label class="settings-field">
+                    <span>Afdelingsnavn</span>
+                    <input
+                      type="text"
+                      name="location_name"
+                      value="{{ old('location_name', (string) ($selectedLocation?->name ?? '')) }}"
+                      placeholder="Fx Bordingafdelingen"
+                      required
+                    >
+                    <small>Det navn medarbejdere og kunder ser for den valgte lokation.</small>
+                  </label>
+                </div>
+
+                <div class="settings-grid">
+                  <label class="settings-field">
+                    <span>Tekst til offentlig booking-side</span>
+                    <textarea
+                      name="location_public_booking_intro_text"
+                      rows="3"
+                      maxlength="500"
+                      placeholder="Vælg ydelse, tidspunkt og kontaktoplysninger. Når du opretter, ligger bookingen straks i kalenderen."
+                    >{{ old('location_public_booking_intro_text', (string) ($selectedLocation?->public_booking_intro_text ?? '')) }}</textarea>
+                    <small>Denne tekst vises kun for den valgte lokation.</small>
+                  </label>
+                </div>
+
+                <div class="settings-grid">
+                  <label class="settings-field">
+                    <span>Tilpasset bookingbesked</span>
+                    <textarea
+                      name="location_public_booking_confirmation_text"
+                      rows="3"
+                      maxlength="500"
+                      placeholder="Tak for din booking. Vi glæder os til at tage imod dig i Bording."
+                    >{{ old('location_public_booking_confirmation_text', (string) ($selectedLocation?->public_booking_confirmation_text ?? '')) }}</textarea>
+                    <small>Vises til kunden efter gennemført booking. Tomt felt bruger standardbeskeden.</small>
+                  </label>
+                </div>
+
+                <div class="settings-grid settings-grid-two">
+                  <label class="settings-field">
+                    <span>Adresse linje 1</span>
+                    <input
+                      type="text"
+                      name="location_address_line_1"
+                      value="{{ old('location_address_line_1', (string) ($selectedLocation?->address_line_1 ?? '')) }}"
+                      placeholder="Fx Storegade 12"
+                    >
+                  </label>
+                  <label class="settings-field">
+                    <span>Adresse linje 2 (valgfri)</span>
+                    <input
+                      type="text"
+                      name="location_address_line_2"
+                      value="{{ old('location_address_line_2', (string) ($selectedLocation?->address_line_2 ?? '')) }}"
+                      placeholder="Fx 1. sal"
+                    >
+                  </label>
+                </div>
+
+                <div class="settings-grid settings-grid-two">
+                  <label class="settings-field">
+                    <span>Postnummer</span>
+                    <input
+                      type="text"
+                      name="location_postal_code"
+                      value="{{ old('location_postal_code', (string) ($selectedLocation?->postal_code ?? '')) }}"
+                      placeholder="Fx 8000"
+                    >
+                  </label>
+                  <label class="settings-field">
+                    <span>By</span>
+                    <input
+                      type="text"
+                      name="location_city"
+                      value="{{ old('location_city', (string) ($selectedLocation?->city ?? '')) }}"
+                      placeholder="Fx Aarhus C"
+                    >
+                  </label>
+                </div>
+
+                <div class="settings-grid settings-grid-two">
+                  <label class="settings-field">
+                    <span>Mobil nr. (offentlig)</span>
+                    <input
+                      type="text"
+                      name="location_public_contact_phone"
+                      value="{{ old('location_public_contact_phone', (string) ($selectedLocation?->public_contact_phone ?? '')) }}"
+                      placeholder="Fx +45 12 34 56 78"
+                    >
+                  </label>
+                  <label class="settings-field">
+                    <span>E-mail (offentlig)</span>
+                    <input
+                      type="email"
+                      name="location_public_contact_email"
+                      value="{{ old('location_public_contact_email', (string) ($selectedLocation?->public_contact_email ?? '')) }}"
+                      placeholder="Fx booking@dinforretning.dk"
+                    >
+                  </label>
+                </div>
+
+                <div class="settings-actions">
+                  <button type="submit" class="settings-button">Gem lokationsindstillinger</button>
+                </div>
+              </section>
+            </form>
           </div>
-        @endif
 
-        <form class="settings-form settings-form-local" method="POST" action="{{ route('settings.update') }}">
-          @csrf
-          @method('PATCH')
-          <input type="hidden" name="update_booking_intro" value="1">
-          <input type="hidden" name="location_id" value="{{ $selectedLocationId }}">
-
-          <section class="settings-block settings-block-local">
-            <div class="settings-block-head">
-              <span>Lokationsindstillinger</span>
+          <aside class="settings-preview-panel">
+            <div class="settings-section-head compact">
+              <div>
+                <p class="settings-eyebrow">Forhåndsvisning</p>
+                <h2>Mobil booking-side</h2>
+              </div>
+              <p class="settings-text">
+                Live preview af den offentlige booking-side for den valgte lokation.
+              </p>
             </div>
 
             @if ($selectedLocation)
-              <p class="settings-text">Aktiv lokation: <strong>{{ $selectedLocation->name }}</strong></p>
+              <div class="settings-alert settings-alert-scope" role="status">
+                Preview viser <strong>{{ $selectedLocation->name }}</strong>.
+              </div>
             @endif
 
-            <div class="settings-grid">
-              <label class="settings-field">
-                <span>Tekst til offentlig booking-side</span>
-                <textarea
-                  name="location_public_booking_intro_text"
-                  rows="3"
-                  maxlength="500"
-                  placeholder="Vælg ydelse, tidspunkt og kontaktoplysninger. Når du opretter, ligger bookingen straks i kalenderen."
-                >{{ old('location_public_booking_intro_text', (string) ($selectedLocation?->public_booking_intro_text ?? '')) }}</textarea>
-                <small>Denne tekst vises kun for den valgte lokation.</small>
-              </label>
+            <div class="settings-preview-live">
+              <div class="settings-preview-frame-shell">
+                <iframe
+                  src="{{ $publicBookingPreviewUrl }}"
+                  class="settings-preview-frame"
+                  title="Forhåndsvisning af offentlig booking-side"
+                  loading="eager"
+                  referrerpolicy="same-origin"
+                ></iframe>
+              </div>
             </div>
+          </aside>
+        </div>
+      </div>
 
-            <div class="settings-grid settings-grid-two">
-              <label class="settings-field">
-                <span>Adresse linje 1</span>
-                <input
-                  type="text"
-                  name="location_address_line_1"
-                  value="{{ old('location_address_line_1', (string) ($selectedLocation?->address_line_1 ?? '')) }}"
-                  placeholder="Fx Storegade 12"
-                >
-              </label>
-              <label class="settings-field">
-                <span>Adresse linje 2 (valgfri)</span>
-                <input
-                  type="text"
-                  name="location_address_line_2"
-                  value="{{ old('location_address_line_2', (string) ($selectedLocation?->address_line_2 ?? '')) }}"
-                  placeholder="Fx 1. sal"
-                >
-              </label>
-            </div>
+      <div class="settings-card" data-settings-panel="branding" @if($activeSettingsView !== 'branding') hidden @endif>
+        <div class="settings-section-head">
+          <div>
+            <p class="settings-eyebrow">Indstillinger</p>
+            <h1>Global branding</h1>
+          </div>
+          <p class="settings-text">
+            Styr brandnavn, farver, logo og bookingoplevelse pa tværs af alle lokationer.
+          </p>
+        </div>
 
-            <div class="settings-grid settings-grid-two">
-              <label class="settings-field">
-                <span>Postnummer</span>
-                <input
-                  type="text"
-                  name="location_postal_code"
-                  value="{{ old('location_postal_code', (string) ($selectedLocation?->postal_code ?? '')) }}"
-                  placeholder="Fx 8000"
-                >
-              </label>
-              <label class="settings-field">
-                <span>By</span>
-                <input
-                  type="text"
-                  name="location_city"
-                  value="{{ old('location_city', (string) ($selectedLocation?->city ?? '')) }}"
-                  placeholder="Fx Aarhus C"
-                >
-              </label>
-            </div>
-
-            <div class="settings-grid settings-grid-two">
-              <label class="settings-field">
-                <span>Mobil nr. (offentlig)</span>
-                <input
-                  type="text"
-                  name="location_public_contact_phone"
-                  value="{{ old('location_public_contact_phone', (string) ($selectedLocation?->public_contact_phone ?? '')) }}"
-                  placeholder="Fx +45 12 34 56 78"
-                >
-              </label>
-              <label class="settings-field">
-                <span>E-mail (offentlig)</span>
-                <input
-                  type="email"
-                  name="location_public_contact_email"
-                  value="{{ old('location_public_contact_email', (string) ($selectedLocation?->public_contact_email ?? '')) }}"
-                  placeholder="Fx booking@dinforretning.dk"
-                >
-              </label>
-            </div>
-
-            <div class="settings-actions">
-              <button type="submit" class="settings-button">Gem lokationsindstillinger</button>
-            </div>
-          </section>
-        </form>
+        @if (session('status'))
+          <div class="settings-alert settings-alert-success" role="status">
+            {{ session('status') }}
+          </div>
+        @endif
 
         <section class="settings-block settings-block-scope{{ $canManageGlobal ? '' : ' is-locked' }}">
           <div class="settings-block-head settings-block-head-split">
@@ -185,13 +298,32 @@
           <form class="settings-form settings-form-global" method="POST" action="{{ route('settings.update') }}" enctype="multipart/form-data">
             @csrf
             @method('PATCH')
+            <input type="hidden" name="settings_view" value="branding">
+            <input type="hidden" name="location_id" value="{{ $selectedLocationId }}">
 
             <div class="settings-grid settings-grid-two">
+              <label class="settings-field">
+                <span>Virksomheds-slug (subdomæne)</span>
+                <input
+                  type="text"
+                  name="slug"
+                  value="{{ old('slug', $tenant->slug) }}"
+                  placeholder="fx chris-virksomhed"
+                  @disabled(! $canManageGlobal)
+                >
+                <small>
+                  Bruges som subdomæne for alle offentlige bookingsider:
+                  <strong>{{ old('slug', $tenant->slug) ?: 'virksomhed' }}{{ $publicRootDomain !== '' ? '.'.$publicRootDomain : '' }}</strong>
+                </small>
+              </label>
+
               <label class="settings-field">
                 <span>Brand navn</span>
                 <input type="text" name="public_brand_name" value="{{ old('public_brand_name', $tenant->public_brand_name) }}" placeholder="{{ $tenant->name }}" @disabled(! $canManageGlobal)>
               </label>
+            </div>
 
+            <div class="settings-grid settings-grid-two">
               <label class="settings-field">
                 <span>Logo alt tekst</span>
                 <input type="text" name="public_logo_alt" value="{{ old('public_logo_alt', $tenant->public_logo_alt) }}" placeholder="Beskriv logoet kort" @disabled(! $canManageGlobal)>
@@ -312,34 +444,14 @@
             @csrf
             @method('PATCH')
             <input type="hidden" name="reset_branding" value="1">
+            <input type="hidden" name="settings_view" value="branding">
+            <input type="hidden" name="location_id" value="{{ $selectedLocationId }}">
+            <input type="hidden" name="slug" value="{{ $tenant->slug }}">
             <button type="submit" class="settings-button settings-button-ghost" @disabled(! $canManageGlobal)>Nulstil branding (ingen logo)</button>
           </form>
         </section>
       </div>
 
-      <div class="settings-card">
-        <div class="settings-section-head compact">
-          <div>
-            <p class="settings-eyebrow">Forhåndsvisning</p>
-            <h2>Mobil booking-side</h2>
-          </div>
-          <p class="settings-text">
-            Live visning af den offentlige bookingside for den valgte lokation.
-          </p>
-        </div>
-
-        <div class="settings-preview-live">
-          <div class="settings-preview-frame-shell">
-            <iframe
-              src="{{ $publicBookingPreviewUrl }}"
-              class="settings-preview-frame"
-              title="Forhåndsvisning af offentlig booking-side"
-              loading="lazy"
-              referrerpolicy="same-origin"
-            ></iframe>
-          </div>
-        </div>
-      </div>
     </div>
   </section>
 @endsection
