@@ -8,6 +8,14 @@
   @vite(['resources/css/app-platform.css', 'resources/js/pwa.js'])
 </head>
 <body class="platform-body">
+  @php
+    $activeTenantCount = $tenants->where('is_active', true)->count();
+    $inactiveTenantCount = $tenants->count() - $activeTenantCount;
+    $totalLocations = (int) $tenants->sum('locations_count');
+    $totalUsers = (int) $tenants->sum('users_count');
+    $totalBookings = (int) $tenants->sum('bookings_count');
+  @endphp
+
   <main class="platform-shell">
     <header class="platform-topbar">
       <a href="{{ route('platform.dashboard') }}" class="platform-brand">
@@ -35,13 +43,68 @@
       <p class="platform-alert" role="alert">{{ $errors->first() }}</p>
     @endif
 
-    <section class="platform-grid">
-      <article class="platform-card">
-        <p class="platform-eyebrow">Ny forretning</p>
-        <h1>Opret virksomhed</h1>
+    <section class="platform-hero platform-card">
+      <div class="platform-hero-copy">
+        <p class="platform-eyebrow">Developer platform</p>
+        <h1>Faa overblik over virksomheder, domæner og bookingdrift</h1>
         <p class="platform-muted">
-          Opret en ny butik med default lokation. Derefter kan du ga ind og konfigurere brugere, lokationer og indstillinger.
+          Herfra opretter du nye virksomheder, følger status pa live-opsætninger og hopper direkte
+          ind i den butik, der skal justeres. Fokus er hurtig drift, tydelige links og færre klik.
         </p>
+
+        <div class="platform-link-stack">
+          <div class="platform-domain-preview">
+            <span>Medarbejder-login</span>
+            <strong>{{ \App\Support\RouteUrls::loginHome() }}</strong>
+          </div>
+          <div class="platform-domain-preview">
+            <span>Platform-app</span>
+            <strong>{{ \App\Support\RouteUrls::platform('dashboard') }}</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="platform-stat-grid">
+        <article class="platform-stat-card">
+          <span>Virksomheder</span>
+          <strong>{{ $tenants->count() }}</strong>
+          <small>{{ $activeTenantCount }} aktive · {{ $inactiveTenantCount }} inaktive</small>
+        </article>
+
+        <article class="platform-stat-card">
+          <span>Lokationer</span>
+          <strong>{{ $totalLocations }}</strong>
+          <small>Offentlige bookingsider pa tværs af tenants</small>
+        </article>
+
+        <article class="platform-stat-card">
+          <span>Brugere</span>
+          <strong>{{ $totalUsers }}</strong>
+          <small>Ejere, medarbejdere og ledere samlet</small>
+        </article>
+
+        <article class="platform-stat-card">
+          <span>Bookinger</span>
+          <strong>{{ $totalBookings }}</strong>
+          <small>Total bookingvolumen i systemet</small>
+        </article>
+      </div>
+    </section>
+
+    <section class="platform-dashboard-grid">
+      <article class="platform-card platform-card-accent">
+        <div class="platform-card-header">
+          <div>
+            <p class="platform-eyebrow">Ny forretning</p>
+            <h2>Opret virksomhed</h2>
+            <p class="platform-muted">
+              Nye virksomheder far automatisk en aktiv `Hovedafdeling`, sa der er et klart udgangspunkt for
+              domæner, ydelser og ejeropsætning.
+            </p>
+          </div>
+
+          <span class="platform-tag">Klar til drift</span>
+        </div>
 
         <form method="POST" action="{{ route('platform.tenants.store') }}" class="platform-form">
           @csrf
@@ -55,7 +118,7 @@
             <label class="platform-field">
               <span>Virksomheds-slug (subdomæne, valgfri)</span>
               <input type="text" name="slug" value="{{ old('slug') }}" placeholder="fx salonnavn">
-              <small class="platform-muted">Bruges som `salonnavn.platebook.dk`.</small>
+              <small class="platform-muted">Bruges som `salonnavn.platebook.dk`. Lad feltet stå tomt, hvis systemet skal foresla en slug.</small>
             </label>
 
             <label class="platform-field">
@@ -78,17 +141,40 @@
           <label class="platform-field-check">
             <input type="hidden" name="is_active" value="0">
             <input type="checkbox" name="is_active" value="1" @checked((bool) old('is_active', true))>
-            <span>Aktiv virksomhed</span>
+            <span>Aktiv virksomhed fra start</span>
           </label>
 
           <button type="submit" class="platform-button platform-button-primary">Opret forretning</button>
         </form>
+
+        <div class="platform-note-list">
+          <article class="platform-note-card">
+            <strong>URL-model</strong>
+            <p>Virksomheden far sit eget subdomæne, og hver lokation far sin egen sti under det.</p>
+          </article>
+
+          <article class="platform-note-card">
+            <strong>Næste skridt</strong>
+            <p>Efter oprettelse kan du ga direkte til butikken, oprette ejer, justere slug og aabne offentlig booking.</p>
+          </article>
+        </div>
       </article>
 
       <article class="platform-card">
-        <p class="platform-eyebrow">Forretninger</p>
-        <h2>Vælg butik</h2>
-        <p class="platform-muted">{{ $tenants->count() }} virksomheder i systemet.</p>
+        <div class="platform-card-header">
+          <div>
+            <p class="platform-eyebrow">Forretninger</p>
+            <h2>Workspace-oversigt</h2>
+            <p class="platform-muted">
+              Vælg en butik for at redigere domæner, lokationer, branding og ejeradgang. Alt samlet i et mere driftsvenligt overblik.
+            </p>
+          </div>
+
+          <div class="platform-card-header-actions">
+            <span class="platform-tag">{{ $activeTenantCount }} aktive</span>
+            <span class="platform-tag platform-tag-muted">{{ $inactiveTenantCount }} inaktive</span>
+          </div>
+        </div>
 
         <div class="platform-tenant-list">
           @forelse ($tenants as $tenant)
@@ -103,8 +189,24 @@
                 </span>
               </div>
 
+              <div class="platform-meta-grid">
+                <article class="platform-meta-item">
+                  <span>Plan</span>
+                  <strong>{{ $tenant->plan?->name ?? 'Ikke valgt' }}</strong>
+                </article>
+
+                <article class="platform-meta-item">
+                  <span>Public root</span>
+                  <strong>{{ \App\Support\RouteUrls::publicBooking((string) $tenant->slug) }}</strong>
+                </article>
+
+                <article class="platform-meta-item">
+                  <span>Oprettet</span>
+                  <strong>{{ optional($tenant->created_at)->format('d.m.Y') ?: 'Ukendt' }}</strong>
+                </article>
+              </div>
+
               <div class="platform-pills">
-                <span>Plan: {{ $tenant->plan?->name ?? 'Ikke valgt' }}</span>
                 <span>{{ $tenant->users_count }} brugere</span>
                 <span>{{ $tenant->locations_count }} lokationer</span>
                 <span>{{ $tenant->services_count }} ydelser</span>
@@ -112,14 +214,14 @@
               </div>
 
               <div class="platform-location-actions">
-                <a href="{{ route('platform.tenants.show', $tenant) }}" class="platform-link-button">Vælg forretning</a>
+                <a href="{{ route('platform.tenants.show', $tenant) }}" class="platform-link-button">Aabn kontrolrum</a>
                 <a href="{{ route('public-booking.tenant', ['tenantSlug' => $tenant->slug]) }}" class="platform-link-button">Offentlig booking</a>
               </div>
             </article>
           @empty
-            <article class="platform-tenant-item">
+            <article class="platform-empty-state">
               <strong>Ingen virksomheder endnu</strong>
-              <p class="platform-muted">Start med at oprette den første virksomhed til venstre.</p>
+              <p class="platform-muted">Start til venstre med at oprette den første virksomhed. Den far automatisk en aktiv hovedlokation.</p>
             </article>
           @endforelse
         </div>
