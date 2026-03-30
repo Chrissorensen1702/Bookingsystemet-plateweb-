@@ -30,6 +30,12 @@
           </p>
         </div>
 
+        @if (session('status'))
+          <div class="login-alert is-success" role="status">
+            {{ session('status') }}
+          </div>
+        @endif
+
         @if ($errors->any())
           <div class="login-alert" role="alert">
             {{ $errors->first() }}

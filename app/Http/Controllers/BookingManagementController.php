@@ -9,6 +9,7 @@ use App\Models\Service;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Support\BookingSlotManager;
+use App\Support\BookingSmsNotifier;
 use App\Support\LocationAvailability;
 use App\Support\WorkShiftAvailability;
 use Carbon\CarbonImmutable;
@@ -26,7 +27,8 @@ class BookingManagementController extends Controller
         Request $request,
         LocationAvailability $availability,
         BookingSlotManager $slotManager,
-        WorkShiftAvailability $shiftAvailability
+        WorkShiftAvailability $shiftAvailability,
+        BookingSmsNotifier $smsNotifier
     ): RedirectResponse
     {
         $tenantId = $this->resolveTenantId($request);
@@ -235,6 +237,12 @@ class BookingManagementController extends Controller
 
             return $booking;
         });
+
+        try {
+            $smsNotifier->sendConfirmation($booking);
+        } catch (\Throwable $exception) {
+            report($exception);
+        }
 
         return redirect()
             ->route('booking-calender', $this->calendarQueryFromRequest($request, [

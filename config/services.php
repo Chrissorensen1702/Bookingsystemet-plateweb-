@@ -35,4 +35,13 @@ return [
         ],
     ],
 
+    'twilio' => [
+        'sms_enabled' => filter_var(env('TWILIO_SMS_ENABLED', false), FILTER_VALIDATE_BOOL),
+        'sid' => env('TWILIO_ACCOUNT_SID'),
+        'auth_token' => env('TWILIO_AUTH_TOKEN'),
+        'messaging_service_sid' => env('TWILIO_MESSAGING_SERVICE_SID'),
+        'from' => env('TWILIO_MESSAGING_FROM'),
+        'default_country_code' => env('TWILIO_DEFAULT_COUNTRY_CODE', '+45'),
+    ],
+
 ];

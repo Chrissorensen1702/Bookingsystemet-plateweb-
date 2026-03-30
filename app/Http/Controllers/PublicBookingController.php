@@ -10,6 +10,7 @@ use App\Models\Service;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Support\BookingSlotManager;
+use App\Support\BookingSmsNotifier;
 use App\Support\LocationAvailability;
 use App\Support\UploadsStorage;
 use App\Support\WorkShiftAvailability;
@@ -476,7 +477,8 @@ class PublicBookingController extends Controller
         Request $request,
         LocationAvailability $availability,
         BookingSlotManager $slotManager,
-        WorkShiftAvailability $shiftAvailability
+        WorkShiftAvailability $shiftAvailability,
+        BookingSmsNotifier $smsNotifier
     ): RedirectResponse
     {
         $tenantId = $this->resolveTenantId($request);
@@ -729,7 +731,7 @@ class PublicBookingController extends Controller
 
         $customer = $this->resolveCustomer($validated, $tenantId);
 
-        DB::transaction(function () use (
+        $booking = DB::transaction(function () use (
             $tenantId,
             $location,
             $customer,
@@ -741,7 +743,7 @@ class PublicBookingController extends Controller
             $slotManager,
             $bufferBeforeMinutes,
             $bufferAfterMinutes
-        ): void {
+        ): Booking {
             $booking = Booking::query()->create([
                 'tenant_id' => $tenantId,
                 'location_id' => $location->id,
@@ -757,7 +759,15 @@ class PublicBookingController extends Controller
             ]);
 
             $this->syncBookingSlots($slotManager, $booking, 'booking_time');
+
+            return $booking;
         });
+
+        try {
+            $smsNotifier->sendConfirmation($booking);
+        } catch (Throwable $exception) {
+            report($exception);
+        }
 
         $tenantQuery = trim((string) $request->query('tenant', ''));
         $redirectParams = [

@@ -153,9 +153,18 @@ class PlatformTenantController extends Controller
             }
         }
 
+        $statusMessage = 'Ejer-brugeren er oprettet. Bekræftelsesmail er sendt.';
+
+        try {
+            $user->sendEmailVerificationNotification();
+        } catch (\Throwable $exception) {
+            report($exception);
+            $statusMessage = 'Ejer-brugeren er oprettet, men bekræftelsesmailen kunne ikke sendes. Tjek mail-opsætningen.';
+        }
+
         return redirect()
             ->route('platform.tenants.show', $tenant)
-            ->with('status', 'Ejer-brugeren er oprettet.');
+            ->with('status', $statusMessage);
     }
 
     public function storeLocation(Request $request, Tenant $tenant): RedirectResponse

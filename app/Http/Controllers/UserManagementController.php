@@ -306,9 +306,18 @@ class UserManagementController extends Controller
 
         $this->ensureBookableUserLocationAssignments($user, $selectedLocationIds);
 
+        $statusMessage = 'Brugeren er oprettet. Bekræftelsesmail er sendt.';
+
+        try {
+            $user->sendEmailVerificationNotification();
+        } catch (\Throwable $exception) {
+            report($exception);
+            $statusMessage = 'Brugeren er oprettet, men bekræftelsesmailen kunne ikke sendes. Tjek mail-opsætningen.';
+        }
+
         return redirect()
             ->route('users.index')
-            ->with('status', 'Brugeren er oprettet.');
+            ->with('status', $statusMessage);
     }
 
     public function update(Request $request, User $user): RedirectResponse
