@@ -13,6 +13,7 @@ export default defineConfig({
                 'resources/js/app.js',
                 'resources/js/pages/public-booking.js',
                 'resources/js/pages/login-password-toggle.js',
+                'resources/js/pages/login-passkey.js',
                 'resources/js/pwa.js',
             ],
             refresh: true,

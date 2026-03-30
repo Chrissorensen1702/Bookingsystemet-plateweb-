@@ -68,11 +68,6 @@
             </div>
           </label>
 
-          <label class="login-check">
-            <input type="checkbox" name="remember" value="1">
-            <span>Husk mig pa denne enhed</span>
-          </label>
-
           <button type="submit" class="login-button">Log ind som developer</button>
 
           <div class="login-help">

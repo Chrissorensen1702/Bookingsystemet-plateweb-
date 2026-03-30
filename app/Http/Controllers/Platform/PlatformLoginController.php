@@ -24,16 +24,13 @@ class PlatformLoginController extends Controller
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required', 'string'],
-            'remember' => ['nullable', 'boolean'],
         ]);
-
-        $remember = (bool) ($credentials['remember'] ?? false);
 
         if (! Auth::guard('platform')->attempt([
             'email' => $credentials['email'],
             'password' => $credentials['password'],
             'is_active' => true,
-        ], $remember)) {
+        ], false)) {
             return back()->withErrors([
                 'email' => 'Forkert platform-login eller bruger er ikke aktiv.',
             ])->onlyInput('email');

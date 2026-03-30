@@ -7,3 +7,4 @@ import './pages/services';
 import './pages/users';
 import './pages/availability';
 import './pages/settings';
+import './pages/profile-passkeys';

@@ -68,7 +68,7 @@ return [
 
     'providers' => [
         'users' => [
-            'driver' => 'eloquent',
+            'driver' => 'webauthn',
             'model' => env('AUTH_MODEL', User::class),
         ],
         'platform_users' => [

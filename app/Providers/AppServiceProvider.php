@@ -9,6 +9,11 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use LaravelWebauthn\Facades\Webauthn as WebauthnFacade;
+use LaravelWebauthn\Models\WebauthnKey;
+use ParagonIE\ConstantTime\Base64UrlSafe;
+use Throwable;
+use Webauthn\Util\Base64;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -43,6 +48,49 @@ class AppServiceProvider extends ServiceProvider
             $email = (string) $request->input('email', '');
 
             return Limit::perMinute(5)->by($request->ip().'|'.mb_strtolower(trim($email)));
+        });
+
+        WebauthnFacade::authenticateUsing(function (Request $request): ?User {
+            $credentials = $request->only(['id', 'rawId', 'response', 'type']);
+            $credentialId = trim((string) ($credentials['id'] ?? ''));
+
+            if ($credentialId === '') {
+                return null;
+            }
+
+            try {
+                $decodedCredentialId = Base64::decode($credentialId);
+            } catch (Throwable) {
+                return null;
+            }
+
+            $webauthnKey = WebauthnKey::query()
+                ->where('credentialId', Base64UrlSafe::encode($decodedCredentialId))
+                ->orWhere('credentialId', Base64UrlSafe::encodeUnpadded($decodedCredentialId))
+                ->first();
+
+            if (! $webauthnKey instanceof WebauthnKey) {
+                return null;
+            }
+
+            $user = User::query()
+                ->whereKey((int) $webauthnKey->user_id)
+                ->where('is_active', true)
+                ->first();
+
+            if (! $user instanceof User) {
+                return null;
+            }
+
+            $email = mb_strtolower(trim((string) $request->input('email', '')));
+
+            if ($email !== '' && mb_strtolower((string) $user->email) !== $email) {
+                return null;
+            }
+
+            return WebauthnFacade::validateAssertion($user, $credentials)
+                ? $user
+                : null;
         });
 
         RateLimiter::for('public-booking-view', function (Request $request): Limit {

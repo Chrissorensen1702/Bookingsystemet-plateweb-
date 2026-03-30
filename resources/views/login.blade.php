@@ -5,7 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   @include('layouts.partials.pwa-meta')
   <title>Login | Bookingsystem</title>
-  @vite(['resources/css/app-login.css', 'resources/js/pwa.js', 'resources/js/pages/login-password-toggle.js'])
+  @vite([
+    'resources/css/app-login.css',
+    'resources/js/pwa.js',
+    'resources/js/pages/login-password-toggle.js',
+    'resources/js/pages/login-passkey.js',
+  ])
 </head>
 <body class="login-page-body">
   <main class="login-page">
@@ -31,8 +36,19 @@
           </div>
         @endif
 
-        <form class="login-form" method="POST" action="{{ route('login.store') }}">
+        <form
+          class="login-form"
+          method="POST"
+          action="{{ route('login.store') }}"
+          data-passkey-login
+          data-passkey-csrf="{{ csrf_token() }}"
+          data-passkey-options-url="{{ route('webauthn.auth.options') }}"
+          data-passkey-auth-url="{{ route('webauthn.auth') }}"
+          data-passkey-redirect-url="{{ route('booking-calender') }}"
+        >
           @csrf
+          <div class="login-alert" data-passkey-feedback role="status" hidden></div>
+
           <label class="login-field">
             <span>E-mail</span>
             <input
@@ -67,12 +83,15 @@
             </div>
           </label>
 
-          <label class="login-check">
-            <input type="checkbox" name="remember" value="1">
-            <span>Husk mig på denne enhed</span>
-          </label>
-
           <button type="submit" class="login-button">Log ind</button>
+
+          <div class="login-passkey-divider" aria-hidden="true">
+            <span>Eller</span>
+          </div>
+
+          <button type="button" class="login-button login-button-secondary" data-passkey-login-button>
+            Log ind med passkey
+          </button>
 
           <div class="login-help">
             <p>Adgang administreres internt.</p>

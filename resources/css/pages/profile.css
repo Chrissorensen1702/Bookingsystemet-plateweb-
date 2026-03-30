@@ -68,6 +68,7 @@
 .profile-form {
   display: grid;
   gap: 12px;
+  min-width: 0;
 }
 
 .profile-avatar-panel {
@@ -197,12 +198,161 @@
   background: rgb(var(--color-text-rgb) / 1);
 }
 
+.profile-passkey-panel {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid rgb(var(--color-border-rgb) / 0.9);
+  border-radius: 12px;
+  background: rgb(var(--color-surface-alt-rgb) / 0.32);
+  min-width: 0;
+}
+
+.profile-passkey-head {
+  display: grid;
+  gap: 4px;
+}
+
+.profile-passkey-head h2 {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.2;
+  color: var(--color-text);
+}
+
+.profile-passkey-head p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-soft);
+}
+
+.profile-passkey-create {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.profile-passkey-create-button {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid rgb(var(--color-border-rgb) / 0.95);
+  border-radius: 10px;
+  background: rgb(var(--color-primary-rgb) / 1);
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.profile-passkey-create-button:hover {
+  background: rgb(var(--color-primary-rgb) / 0.9);
+}
+
+.profile-passkey-create-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.profile-passkey-feedback {
+  margin: 0;
+  padding: 9px 11px;
+  border-radius: 10px;
+  border: 1px solid rgb(220 38 38 / 0.3);
+  background: rgb(220 38 38 / 0.1);
+  color: rgb(153 27 27 / 0.95);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.profile-passkey-feedback.is-success {
+  border-color: rgb(22 163 74 / 0.32);
+  background: rgb(22 163 74 / 0.12);
+  color: rgb(21 128 61 / 1);
+}
+
+.profile-passkey-empty {
+  margin: 0;
+  color: var(--color-text-soft);
+  font-size: 13px;
+}
+
+.profile-passkey-list {
+  display: grid;
+  gap: 8px;
+}
+
+.profile-passkey-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 9px 10px;
+  border: 1px solid rgb(var(--color-border-rgb) / 0.85);
+  border-radius: 10px;
+  background: rgb(var(--color-surface-rgb) / 0.95);
+}
+
+.profile-passkey-meta {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.profile-passkey-meta strong {
+  margin: 0;
+  color: var(--color-text);
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.profile-passkey-meta small {
+  color: var(--color-text-soft);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.profile-passkey-delete-form {
+  display: inline-flex;
+}
+
+.profile-passkey-delete {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid rgb(220 38 38 / 0.35);
+  border-radius: 9px;
+  background: rgb(220 38 38 / 0.1);
+  color: rgb(153 27 27 / 0.95);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.profile-passkey-delete:hover {
+  background: rgb(220 38 38 / 0.16);
+}
+
 @media (max-width: 980px) {
+  .profile-page-body .main-content {
+    height: 100dvh;
+    overflow: hidden;
+  }
+
   .profile-page {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
     padding: 8px;
   }
 
   .profile-card {
+    height: 100%;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
     padding: 14px;
   }
 
@@ -211,6 +361,15 @@
   }
 
   .profile-avatar-panel {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+
+  .profile-passkey-create {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-passkey-item {
     grid-template-columns: 1fr;
     justify-items: start;
   }

@@ -6,6 +6,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use LaravelWebauthn\Facades\Webauthn as WebauthnFacade;
 
 class LoginController extends Controller
 {
@@ -23,16 +24,13 @@ class LoginController extends Controller
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required', 'string'],
-            'remember' => ['nullable', 'boolean'],
         ]);
-
-        $remember = (bool) ($credentials['remember'] ?? false);
 
         if (! Auth::attempt([
             'email' => $credentials['email'],
             'password' => $credentials['password'],
             'is_active' => true,
-        ], $remember)) {
+        ], false)) {
             return back()->withErrors([
                 'email' => 'Forkert e-mail eller adgangskode.',
             ])->onlyInput('email');
@@ -46,6 +44,7 @@ class LoginController extends Controller
     public function destroy(Request $request): RedirectResponse
     {
         Auth::logout();
+        WebauthnFacade::logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
