@@ -1,41 +1,36 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="900" height="720" viewBox="0 0 900 720" fill="none">
   <defs>
-    <linearGradient id="gradA" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#0F3D91"/>
-      <stop offset="100%" stop-color="#20C5C7"/>
+    <linearGradient id="stacked-g1" x1="6" y1="10" x2="114" y2="110" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0F3D91"/>
+      <stop offset="0.56" stop-color="#2B63BE"/>
+      <stop offset="1" stop-color="#20C5C7"/>
     </linearGradient>
-    <linearGradient id="gradB" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#123B84"/>
-      <stop offset="100%" stop-color="#11B7D9"/>
+    <linearGradient id="stacked-g2" x1="6" y1="10" x2="114" y2="40" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#123B84"/>
+      <stop offset="1" stop-color="#11B7D9"/>
     </linearGradient>
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-opacity="0.12"/>
+    <filter id="stacked-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="9" flood-color="#0E224D" flood-opacity="0.18"/>
     </filter>
-    <style>
-      .brand { font-family: Inter, Arial, Helvetica, sans-serif; font-weight: 800; letter-spacing: -1.5px; }
-      .tag { font-family: Inter, Arial, Helvetica, sans-serif; font-weight: 500; letter-spacing: -0.4px; }
-      .mono { fill: #103A7E; }
-      .accent { fill: #19BBC6; }
-      .muted { fill: #667085; }
-    </style>
   </defs>
 
-  <g transform="translate(330,60) scale(1.0)" filter="url(#shadow)">
-    <rect x="20" y="30" width="180" height="170" rx="28" fill="url(#gradA)"/>
-    <rect x="20" y="30" width="180" height="42" rx="28" fill="url(#gradB)"/>
-    <rect x="45" y="12" width="26" height="42" rx="13" fill="#fff"/>
-    <rect x="149" y="12" width="26" height="42" rx="13" fill="#fff"/>
-    <rect x="52" y="95" width="26" height="24" rx="5" fill="#ffffff22"/>
-    <rect x="86" y="95" width="26" height="24" rx="5" fill="#ffffff22"/>
-    <rect x="120" y="95" width="26" height="24" rx="5" fill="#ffffff22"/>
-    <rect x="52" y="127" width="26" height="24" rx="5" fill="#ffffff22"/>
-    <rect x="86" y="127" width="26" height="24" rx="5" fill="#ffffff22"/>
-    <rect x="120" y="127" width="26" height="24" rx="5" fill="#ffffff22"/>
-    <path d="M95 101l10 10 22-24" stroke="white" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M84 170c35-22 74-34 119-37" stroke="white" stroke-width="11" stroke-linecap="round"/>
-    <path d="M133 137l22 57 13-18 19 18 11-11-19-18 18-13-64-15z" fill="white"/>
-  </g>
-  <text x="450" y="430" text-anchor="middle" class="brand" font-size="112" fill="#103A7E">plate<tspan fill="#1CBCC7">web</tspan></text>
-  <text x="450" y="490" text-anchor="middle" class="tag muted" font-size="42">Booking System</text>
+  <g transform="translate(300 64) scale(2.45)" filter="url(#stacked-shadow)">
+    <rect x="6" y="10" width="108" height="100" rx="24" fill="url(#stacked-g1)"/>
+    <rect x="6" y="10" width="108" height="30" rx="24" fill="url(#stacked-g2)"/>
+    <rect x="26" y="0" width="12" height="22" rx="6" fill="#FFFFFF"/>
+    <rect x="82" y="0" width="12" height="22" rx="6" fill="#FFFFFF"/>
 
+    <rect x="27" y="53" width="16" height="14" rx="4" fill="#FFFFFF38"/>
+    <rect x="50" y="53" width="16" height="14" rx="4" fill="#FFFFFF38"/>
+    <rect x="73" y="53" width="16" height="14" rx="4" fill="#FFFFFF38"/>
+    <rect x="27" y="73" width="16" height="14" rx="4" fill="#FFFFFF28"/>
+    <rect x="50" y="73" width="16" height="14" rx="4" fill="#FFFFFF28"/>
+    <rect x="73" y="73" width="16" height="14" rx="4" fill="#FFFFFF28"/>
+
+    <circle cx="84" cy="82" r="20" fill="#0F3D91"/>
+    <path d="M74 82L81 89L94 75" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <text x="450" y="486" text-anchor="middle" fill="#103A7E" font-family="Inter, Avenir Next, Segoe UI, Arial, sans-serif" font-size="118" font-weight="800" letter-spacing="-2.1">Plate<tspan fill="#18BBC6">Book</tspan></text>
+  <text x="450" y="548" text-anchor="middle" fill="#627085" font-family="Inter, Avenir Next, Segoe UI, Arial, sans-serif" font-size="42" font-weight="600" letter-spacing="0.4">Booking System</text>
 </svg>

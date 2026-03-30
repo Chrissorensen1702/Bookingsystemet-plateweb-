@@ -11,7 +11,7 @@
   <main class="platform-shell">
     <header class="platform-topbar">
       <a href="{{ route('platform.dashboard') }}" class="platform-brand">
-        <img src="{{ asset('images/logo/header.svg') }}" alt="PlæBooking">
+        <img src="{{ asset('images/logo/header.svg') }}" alt="PlateBook">
         <span>
           <strong>Platform dashboard</strong>
           <span>Logget ind som {{ $platformUser?->name ?? 'Developer' }} ({{ $platformUser?->roleLabel() ?? 'Developer' }})</span>

@@ -5,7 +5,7 @@
 @endphp
 
 <a href="{{ route('booking-calender') }}" class="sidebar-brand">
-  <img src="{{ asset('images/logo/stacked.svg') }}" alt="PlæBooking" class="logo">
+  <img src="{{ asset('images/logo/stacked.svg') }}" alt="PlateBook" class="logo">
 </a>
 
 <nav class="sidebar-nav" aria-label="Hovedmenu">

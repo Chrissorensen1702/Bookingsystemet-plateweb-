@@ -12,7 +12,7 @@
     <section class="login-panel">
       <div class="login-brand">
         <a href="{{ route('platform.login') }}" class="login-brand-link">
-          <img src="{{ asset('images/logo/header.svg') }}" alt="PlæBooking" class="logo-login">
+          <img src="{{ asset('images/logo/header.svg') }}" alt="PlateBook" class="logo-login">
         </a>
       </div>
 
