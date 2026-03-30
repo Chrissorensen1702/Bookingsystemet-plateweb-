@@ -101,6 +101,7 @@ for (const form of forms) {
   const authUrl = form.dataset.passkeyAuthUrl || '';
   const redirectUrl = form.dataset.passkeyRedirectUrl || '/';
   const initialLabel = button.textContent || 'Log ind med passkey';
+  const csrfInput = form.querySelector('input[name="_token"]');
 
   const setFeedback = (message, type = 'error') => {
     if (!feedback) {
@@ -143,6 +144,24 @@ for (const form of forms) {
       emailField.focus();
       return;
     }
+
+    const csrf = await (async () => {
+      const csrfHelper = window.PlateBookCsrf;
+
+      if (csrfHelper && typeof csrfHelper.refreshForm === 'function') {
+        try {
+          return await csrfHelper.refreshForm(form);
+        } catch {
+          // Fall back to the current token embedded in the page.
+        }
+      }
+
+      if (csrfInput instanceof HTMLInputElement && csrfInput.value.trim() !== '') {
+        return csrfInput.value.trim();
+      }
+
+      return form.dataset.passkeyCsrf || '';
+    })();
 
     if (csrf === '' || optionsUrl === '' || authUrl === '') {
       setFeedback('Passkey-login er ikke konfigureret korrekt.');

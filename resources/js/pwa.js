@@ -6,6 +6,8 @@ const resetRequested = new URLSearchParams(window.location.search).get('pwa-rese
 const disableServiceWorker = document
   .querySelector('meta[name="pwa-disable-sw"]')
   ?.getAttribute('content') === '1';
+const csrfTokenUrl = new URL('/csrf-token', window.location.origin).toString();
+const nativeSubmit = HTMLFormElement.prototype.submit;
 
 const resetServiceWorkers = async () => {
   const registrations = await navigator.serviceWorker.getRegistrations();
@@ -18,6 +20,99 @@ const resetServiceWorkers = async () => {
 
   return registrations.length > 0;
 };
+
+const getCsrfToken = async () => {
+  const response = await fetch(csrfTokenUrl, {
+    method: 'GET',
+    headers: {
+      Accept: 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
+    },
+    credentials: 'same-origin',
+    cache: 'no-store',
+  });
+
+  if (!response.ok) {
+    throw new Error('Could not refresh CSRF token.');
+  }
+
+  const payload = await response.json().catch(() => null);
+  const token = payload && typeof payload.token === 'string' ? payload.token.trim() : '';
+
+  if (token === '') {
+    throw new Error('Missing CSRF token in refresh response.');
+  }
+
+  return token;
+};
+
+const syncFormToken = (form, token) => {
+  let input = form.querySelector('input[name="_token"]');
+
+  if (!(input instanceof HTMLInputElement)) {
+    input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = '_token';
+    form.prepend(input);
+  }
+
+  input.value = token;
+
+  if (form.dataset.passkeyCsrf !== undefined) {
+    form.dataset.passkeyCsrf = token;
+  }
+
+  return token;
+};
+
+const refreshFormToken = async (form) => {
+  const token = await getCsrfToken();
+
+  return syncFormToken(form, token);
+};
+
+const isSameOriginPostForm = (form) => {
+  if (!(form instanceof HTMLFormElement)) {
+    return false;
+  }
+
+  if ((form.method || 'GET').toUpperCase() !== 'POST') {
+    return false;
+  }
+
+  const action = form.getAttribute('action') || window.location.href;
+  const actionUrl = new URL(action, window.location.href);
+
+  return actionUrl.origin === window.location.origin;
+};
+
+window.PlateBookCsrf = {
+  refreshForm: refreshFormToken,
+};
+
+document.addEventListener('submit', (event) => {
+  const form = event.target;
+
+  if (!(form instanceof HTMLFormElement) || event.defaultPrevented || !isSameOriginPostForm(form)) {
+    return;
+  }
+
+  if (form.dataset.csrfRefreshing === '1') {
+    return;
+  }
+
+  event.preventDefault();
+  form.dataset.csrfRefreshing = '1';
+
+  refreshFormToken(form)
+    .catch(() => {
+      // Fall back to the current token if the refresh request fails.
+    })
+    .finally(() => {
+      delete form.dataset.csrfRefreshing;
+      nativeSubmit.call(form);
+    });
+});
 
 if ('serviceWorker' in navigator && (resetRequested || disableServiceWorker)) {
   window.addEventListener('load', () => {

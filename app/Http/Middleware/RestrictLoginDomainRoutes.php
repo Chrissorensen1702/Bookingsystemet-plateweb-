@@ -49,7 +49,7 @@ class RestrictLoginDomainRoutes
         $webauthnOptionsPath = $webauthnAuthPath.'/options';
 
         if ($request->isMethod('GET') || $request->isMethod('HEAD')) {
-            return in_array($path, ['/', '/login'], true);
+            return in_array($path, ['/', '/login', '/csrf-token'], true);
         }
 
         if ($request->isMethod('POST')) {

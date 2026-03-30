@@ -39,6 +39,14 @@ if ($loginDomain !== '') {
         ->name('login.store');
 }
 
+Route::get('/csrf-token', function (Request $request) {
+    return response()
+        ->json(['token' => $request->session()->token()])
+        ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+        ->header('Pragma', 'no-cache')
+        ->header('Expires', '0');
+})->name('csrf.token');
+
 if ($publicRootDomain !== '') {
     Route::domain('{tenantSlug}.'.$publicRootDomain)
         ->group(function (): void {

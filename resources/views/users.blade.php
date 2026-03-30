@@ -385,7 +385,7 @@
                           name="is_active"
                           value="1"
                           @checked((bool) $user->is_active)
-                          onchange="this.form.submit()"
+                          onchange="this.form.requestSubmit()"
                         >
                         <span>{{ $user->is_active ? 'Aktiv' : 'Inaktiv' }}</span>
                       </label>
@@ -564,7 +564,7 @@
             @endif
             <label class="users-field users-field-compact">
               <span>Lokation</span>
-              <select name="competency_location_id" onchange="this.form.submit()">
+              <select name="competency_location_id" onchange="this.form.requestSubmit()">
                 @foreach ($locationOptions as $locationOption)
                   <option value="{{ $locationOption->id }}" @selected($selectedCompetencyLocationId === (int) $locationOption->id)>
                     {{ $locationOption->name }}
@@ -675,7 +675,7 @@
 
             <label class="users-field users-field-compact">
               <span>Afdeling</span>
-              <select name="workhours_location_id" onchange="this.form.submit()">
+              <select name="workhours_location_id" onchange="this.form.requestSubmit()">
                 @foreach ($locationOptions as $locationOption)
                   <option value="{{ $locationOption->id }}" @selected($selectedWorkhoursLocationId === (int) $locationOption->id)>
                     {{ $locationOption->name }}
@@ -686,7 +686,7 @@
 
             <div class="users-workhours-week-nav" aria-label="Ugenavigation">
               <button type="submit" name="week_nav" value="prev" class="users-button users-button-ghost">Forrige uge</button>
-              <input type="date" name="workhours_date" value="{{ $workhoursDateInput }}" onchange="this.form.submit()">
+              <input type="date" name="workhours_date" value="{{ $workhoursDateInput }}" onchange="this.form.requestSubmit()">
               <button type="submit" name="week_nav" value="next" class="users-button users-button-ghost">Næste uge</button>
             </div>
           </form>

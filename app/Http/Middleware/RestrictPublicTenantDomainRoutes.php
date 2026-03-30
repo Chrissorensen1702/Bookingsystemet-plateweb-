@@ -22,7 +22,7 @@ class RestrictPublicTenantDomainRoutes
             return redirect()->to(RouteUrls::appRequest($request), 302);
         }
 
-        if ($request->routeIs('public-booking.*')) {
+        if ($request->routeIs('public-booking.*', 'csrf.token')) {
             return $next($request);
         }
 

@@ -56,6 +56,20 @@ test('login page uses a versioned service worker url to bypass stale edge caches
     );
 });
 
+test('csrf token endpoint is available on the login domain', function () {
+    $response = $this->get('https://login.platebook.dk/csrf-token');
+
+    $response->assertOk();
+    $response->assertJsonStructure(['token']);
+
+    $cacheControl = (string) $response->headers->get('Cache-Control');
+
+    expect($cacheControl)->toContain('no-store');
+    expect($cacheControl)->toContain('no-cache');
+    expect($cacheControl)->toContain('must-revalidate');
+    expect($cacheControl)->toContain('max-age=0');
+});
+
 test('login domain responses disable caching and clear legacy host-only auth cookies', function () {
     $response = $this->get('https://login.platebook.dk/');
 

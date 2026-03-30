@@ -53,7 +53,7 @@
           <form method="GET" class="settings-location-form">
             <label class="settings-field">
               <span>Vælg lokation (lokale indstillinger)</span>
-              <select name="location_id" onchange="this.form.submit()">
+              <select name="location_id" onchange="this.form.requestSubmit()">
                 @foreach ($locations as $location)
                   <option value="{{ $location->id }}" @selected($selectedLocationId === (int) $location->id)>
                     {{ $location->name }}
