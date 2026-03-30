@@ -338,17 +338,21 @@
   .profile-page-body .main-content {
     height: 100dvh;
     overflow: hidden;
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 700px);
+    grid-template-rows: minmax(0, 1fr);
     justify-content: center;
-    align-items: stretch;
+    align-content: stretch;
   }
 
   .profile-page {
-    width: min(100%, 700px);
-    margin-inline: auto;
+    width: 100%;
+    max-width: 700px;
+    min-width: 0;
     height: 100%;
     min-height: 0;
     padding: 8px 0;
+    box-sizing: border-box;
   }
 
   .profile-card {
@@ -381,8 +385,12 @@
 }
 
 @media (max-width: 760px) {
+  .profile-page-body .main-content {
+    grid-template-columns: minmax(0, 620px);
+  }
+
   .profile-page {
-    width: min(100%, 620px);
+    max-width: 620px;
     padding: 6px 0;
   }
 
