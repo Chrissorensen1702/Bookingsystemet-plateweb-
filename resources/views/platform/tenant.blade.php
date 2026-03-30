@@ -40,7 +40,7 @@
         <p class="platform-eyebrow">Virksomhed</p>
         <h1>Butiksoplysninger</h1>
         <p class="platform-muted">
-          Styr navn, slug og status for butikken. Slug bruges til tenant-linking i bookingflow.
+          Styr navn, subdomæne og status for butikken. Virksomheds-sluggen bliver brugt som subdomæne i den offentlige booking.
         </p>
 
         <form method="POST" action="{{ route('platform.tenants.update', $tenant) }}" class="platform-form">
@@ -54,8 +54,9 @@
 
           <div class="platform-form-grid">
             <label class="platform-field">
-              <span>Slug</span>
+              <span>Virksomheds-slug (subdomæne)</span>
               <input type="text" name="slug" value="{{ old('slug', $tenant->slug) }}" required>
+              <small class="platform-muted">Offentlig root: https://{{ old('slug', $tenant->slug) }}.platebook.dk</small>
             </label>
 
             <label class="platform-field">
@@ -169,6 +170,10 @@
         @php
           $publicLocation = $locations->firstWhere('is_active', true);
         @endphp
+        <p class="platform-muted">
+          Offentlig booking-URL:
+          {{ $publicLocation?->slug ? \App\Support\RouteUrls::publicBooking((string) $tenant->slug, (string) $publicLocation->slug) : \App\Support\RouteUrls::publicBooking((string) $tenant->slug) }}
+        </p>
         <div class="platform-location-actions">
           <a
             href="{{ $publicLocation?->slug ? \App\Support\RouteUrls::publicBooking((string) $tenant->slug, (string) $publicLocation->slug) : route('public-booking.tenant', ['tenantSlug' => $tenant->slug]) }}"
@@ -271,7 +276,7 @@
       <p class="platform-eyebrow">Lokationer</p>
       <h2>Administrer lokationer</h2>
       <p class="platform-muted">
-        Opret, rediger og slet lokationer. Nye lokationer kobles automatisk med eksisterende ydelser og bookbare brugere.
+        Opret, rediger og slet lokationer. Lokations-sluggen bliver URL-stien efter virksomhedens subdomæne.
       </p>
 
       <form method="POST" action="{{ route('platform.tenants.locations.store', $tenant) }}" class="platform-form">
@@ -282,8 +287,9 @@
             <input type="text" name="name" required>
           </label>
           <label class="platform-field">
-            <span>Slug (valgfri)</span>
+            <span>Lokations-slug (URL-sti, valgfri)</span>
             <input type="text" name="slug" placeholder="fx odense">
+            <small class="platform-muted">Bruges som `https://{{ $tenant->slug }}.platebook.dk/odense`.</small>
           </label>
         </div>
 
@@ -337,8 +343,9 @@
                   <input type="text" name="name" value="{{ $location->name }}" required>
                 </label>
                 <label class="platform-field">
-                  <span>Slug</span>
+                  <span>Lokations-slug (URL-sti)</span>
                   <input type="text" name="slug" value="{{ $location->slug }}" required>
+                  <small class="platform-muted">{{ \App\Support\RouteUrls::publicBooking((string) $tenant->slug, (string) $location->slug) }}</small>
                 </label>
               </div>
 

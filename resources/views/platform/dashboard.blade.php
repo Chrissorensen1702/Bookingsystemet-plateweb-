@@ -53,8 +53,9 @@
 
           <div class="platform-form-grid">
             <label class="platform-field">
-              <span>Slug (valgfri)</span>
+              <span>Virksomheds-slug (subdomæne, valgfri)</span>
               <input type="text" name="slug" value="{{ old('slug') }}" placeholder="fx salonnavn">
+              <small class="platform-muted">Bruges som `salonnavn.platebook.dk`.</small>
             </label>
 
             <label class="platform-field">
@@ -95,7 +96,7 @@
               <div class="platform-tenant-head">
                 <div>
                   <strong>{{ $tenant->name }}</strong>
-                  <p class="platform-muted">Slug: {{ $tenant->slug }} · {{ $tenant->timezone }}</p>
+                  <p class="platform-muted">Subdomæne: {{ $tenant->slug }}.platebook.dk · {{ $tenant->timezone }}</p>
                 </div>
                 <span class="platform-tenant-status{{ $tenant->is_active ? ' is-active' : '' }}">
                   {{ $tenant->is_active ? 'Aktiv' : 'Inaktiv' }}
