@@ -18,6 +18,8 @@ use Illuminate\Auth\Events\Verified;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+$loginDomain = trim((string) config('security.auth.login_domain', ''));
+
 // GLOBALE URL ROUTES
 Route::get('/book-tid', [PublicBookingController::class, 'create'])
     ->middleware('throttle:public-booking-view')
@@ -32,12 +34,10 @@ Route::post('/book-tid', [PublicBookingController::class, 'store'])
 Route::prefix('platform')
     ->name('platform.')
     ->group(function (): void {
-        Route::middleware('guest:platform')->group(function (): void {
-            Route::get('/login', [PlatformLoginController::class, 'show'])->name('login');
-            Route::post('/login', [PlatformLoginController::class, 'store'])
-                ->middleware('throttle:login')
-                ->name('login.store');
-        });
+        Route::get('/login', [PlatformLoginController::class, 'show'])->name('login');
+        Route::post('/login', [PlatformLoginController::class, 'store'])
+            ->middleware('throttle:login')
+            ->name('login.store');
 
         Route::middleware('auth:platform')->group(function (): void {
             Route::get('/', [PlatformDashboardController::class, 'index'])->name('dashboard');
@@ -53,12 +53,21 @@ Route::prefix('platform')
         });
     });
 
-Route::middleware('guest')->group(function (): void {
+if ($loginDomain !== '') {
+    Route::domain($loginDomain)->group(function (): void {
+        Route::get('/', [LoginController::class, 'show'])->name('login');
+        Route::post('/login', [LoginController::class, 'store'])
+            ->middleware('throttle:login')
+            ->name('login.store');
+    });
+
+    Route::get('/login', fn () => to_route('login'));
+} else {
     Route::get('/login', [LoginController::class, 'show'])->name('login');
     Route::post('/login', [LoginController::class, 'store'])
         ->middleware('throttle:login')
         ->name('login.store');
-});
+}
 
 Route::get('/email/verify/{id}/{hash}', function (Request $request, string $id, string $hash) {
     if (! $request->hasValidSignature()) {

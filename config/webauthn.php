@@ -110,7 +110,7 @@ return [
     */
 
     'redirects' => [
-        'login' => '/',
+        'login' => rtrim((string) env('APP_URL', '/'), '/') ?: '/',
         'register' => '/profil',
         'key-confirmation' => '/profil',
     ],

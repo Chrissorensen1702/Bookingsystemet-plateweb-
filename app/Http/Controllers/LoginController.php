@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\RouteUrls;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -10,13 +11,21 @@ use LaravelWebauthn\Facades\Webauthn as WebauthnFacade;
 
 class LoginController extends Controller
 {
-    public function show(): View
+    public function show(): View|RedirectResponse
     {
+        if (Auth::check()) {
+            return redirect()->to(RouteUrls::appHome());
+        }
+
         return view('login');
     }
 
     public function store(Request $request): RedirectResponse
     {
+        if (Auth::check()) {
+            return redirect()->to(RouteUrls::appHome());
+        }
+
         $request->merge([
             'email' => $request->string('email')->trim()->lower()->value(),
         ]);
@@ -38,7 +47,7 @@ class LoginController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('booking-calender'));
+        return redirect()->intended(RouteUrls::appHome());
     }
 
     public function destroy(Request $request): RedirectResponse

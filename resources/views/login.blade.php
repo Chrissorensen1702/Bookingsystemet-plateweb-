@@ -50,7 +50,7 @@
           data-passkey-csrf="{{ csrf_token() }}"
           data-passkey-options-url="{{ route('webauthn.auth.options') }}"
           data-passkey-auth-url="{{ route('webauthn.auth') }}"
-          data-passkey-redirect-url="{{ route('booking-calender') }}"
+          data-passkey-redirect-url="{{ \App\Support\RouteUrls::appHome() }}"
         >
           @csrf
           <div class="login-alert" data-passkey-feedback role="status" hidden></div>
@@ -102,7 +102,7 @@
           <div class="login-help">
             <p>Adgang administreres internt.</p>
             <p>Kontakt systemadministratoren, hvis du mangler en bruger eller skal have nulstillet adgang.</p>
-            <a href="{{ route('platform.login') }}" class="login-public-link">Platform login (developer)</a>
+            <a href="{{ \App\Support\RouteUrls::app('platform.login') }}" class="login-public-link">Platform login (developer)</a>
           </div>
         </form>
       </div>

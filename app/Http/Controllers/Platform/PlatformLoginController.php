@@ -10,13 +10,21 @@ use Illuminate\View\View;
 
 class PlatformLoginController extends Controller
 {
-    public function show(): View
+    public function show(): View|RedirectResponse
     {
+        if (Auth::guard('platform')->check()) {
+            return redirect()->route('platform.dashboard');
+        }
+
         return view('platform.login');
     }
 
     public function store(Request $request): RedirectResponse
     {
+        if (Auth::guard('platform')->check()) {
+            return redirect()->route('platform.dashboard');
+        }
+
         $request->merge([
             'email' => $request->string('email')->trim()->lower()->value(),
         ]);
