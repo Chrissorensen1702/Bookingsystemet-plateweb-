@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AddSecurityHeaders;
+use App\Http\Middleware\RefreshLoginDomainState;
 use App\Http\Middleware\RestrictLoginDomainRoutes;
 use App\Http\Middleware\RestrictPublicTenantDomainRoutes;
 use App\Http\Middleware\UseAppOriginForInternalRoutes;
@@ -33,6 +34,10 @@ return Application::configure(basePath: dirname(__DIR__))
 
             return RouteUrls::loginHome();
         });
+
+        $middleware->web(prepend: [
+            RefreshLoginDomainState::class,
+        ]);
 
         $middleware->web(append: [
             RestrictLoginDomainRoutes::class,

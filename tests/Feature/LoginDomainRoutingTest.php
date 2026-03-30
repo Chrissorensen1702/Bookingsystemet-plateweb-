@@ -9,6 +9,9 @@ beforeEach(function (): void {
     putenv('AUTH_LOGIN_DOMAIN=login.platebook.dk');
     $_ENV['AUTH_LOGIN_DOMAIN'] = 'login.platebook.dk';
     $_SERVER['AUTH_LOGIN_DOMAIN'] = 'login.platebook.dk';
+    putenv('SESSION_DOMAIN=.platebook.dk');
+    $_ENV['SESSION_DOMAIN'] = '.platebook.dk';
+    $_SERVER['SESSION_DOMAIN'] = '.platebook.dk';
 
     $this->refreshApplication();
     $this->artisan('migrate:fresh', ['--force' => true]);
@@ -16,7 +19,8 @@ beforeEach(function (): void {
 
 afterEach(function (): void {
     putenv('AUTH_LOGIN_DOMAIN');
-    unset($_ENV['AUTH_LOGIN_DOMAIN'], $_SERVER['AUTH_LOGIN_DOMAIN']);
+    putenv('SESSION_DOMAIN');
+    unset($_ENV['AUTH_LOGIN_DOMAIN'], $_SERVER['AUTH_LOGIN_DOMAIN'], $_ENV['SESSION_DOMAIN'], $_SERVER['SESSION_DOMAIN']);
 
     $this->refreshApplication();
 });
@@ -38,6 +42,34 @@ test('login domain login path redirects to the canonical login page', function (
     $response = $this->get('https://login.platebook.dk/login');
 
     $response->assertRedirect('https://login.platebook.dk');
+});
+
+test('login domain responses disable caching and clear legacy host-only auth cookies', function () {
+    $response = $this->get('https://login.platebook.dk/');
+
+    $response->assertOk();
+    $response->assertHeader('Clear-Site-Data', '"cache", "storage"');
+
+    $cacheControl = (string) $response->headers->get('Cache-Control');
+
+    expect($cacheControl)->toContain('no-store');
+    expect($cacheControl)->toContain('no-cache');
+    expect($cacheControl)->toContain('must-revalidate');
+    expect($cacheControl)->toContain('max-age=0');
+
+    $cookies = collect($response->headers->getCookies());
+
+    expect($cookies->contains(function ($cookie): bool {
+        return $cookie->getName() === config('session.cookie')
+            && $cookie->getDomain() === null
+            && $cookie->isCleared();
+    }))->toBeTrue();
+
+    expect($cookies->contains(function ($cookie): bool {
+        return $cookie->getName() === 'XSRF-TOKEN'
+            && $cookie->getDomain() === null
+            && $cookie->isCleared();
+    }))->toBeTrue();
 });
 
 test('protected app routes redirect guests to the dedicated login domain', function () {
