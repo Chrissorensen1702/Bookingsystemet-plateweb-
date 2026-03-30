@@ -1,6 +1,6 @@
 {
-  "name": "PlaeBooking",
-  "short_name": "PlaeBooking",
+  "name": "PlateBook",
+  "short_name": "PlateBook",
   "description": "Bookingkalender og online booking samlet i et system.",
   "start_url": "./",
   "scope": "./",
