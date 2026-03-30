@@ -1,10 +1,10 @@
-const CACHE_NAME = 'plaebooking-shell-v11';
+const CACHE_NAME = 'plaebooking-shell-v12';
 const APP_SHELL_ASSETS = [
   './',
   './site.webmanifest',
-  './images/logo/pwa-192.png',
-  './images/logo/pwa-512.png',
-  './images/logo/apple-touch-icon.png',
+  './images/logo/pwa-192-v2.png',
+  './images/logo/pwa-512-v2.png',
+  './images/logo/apple-touch-icon-v2.png',
   './favicon.ico',
 ];
 
