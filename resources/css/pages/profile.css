@@ -15,6 +15,9 @@
   border: 1px solid rgb(var(--color-border-rgb) / 0.92);
   border-radius: 14px;
   background: rgb(var(--color-surface-rgb) / 1);
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .profile-head {
@@ -80,6 +83,9 @@
   border: 1px solid rgb(var(--color-border-rgb) / 0.9);
   border-radius: 12px;
   background: rgb(var(--color-surface-alt-rgb) / 0.35);
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .profile-avatar {
@@ -126,6 +132,9 @@
 }
 
 .profile-field input {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   min-height: 40px;
   padding: 0 12px;
   border: 1px solid rgb(var(--color-border-rgb) / 0.92);
@@ -206,6 +215,8 @@
   border-radius: 12px;
   background: rgb(var(--color-surface-alt-rgb) / 0.32);
   min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .profile-passkey-head {
@@ -292,6 +303,9 @@
   border: 1px solid rgb(var(--color-border-rgb) / 0.85);
   border-radius: 10px;
   background: rgb(var(--color-surface-rgb) / 0.95);
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .profile-passkey-meta {
@@ -360,6 +374,7 @@
     display: grid;
     padding: 0;
     box-sizing: border-box;
+    overflow-x: hidden;
   }
 
   .profile-card {
@@ -370,6 +385,18 @@
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
     padding: 14px;
+  }
+
+  .profile-form,
+  .profile-avatar-fields,
+  .profile-grid,
+  .profile-passkey-create,
+  .profile-passkey-list,
+  .profile-passkey-item,
+  .profile-passkey-meta {
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .profile-grid {
