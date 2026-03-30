@@ -48,6 +48,8 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        $exceptions->stopIgnoring(TokenMismatchException::class);
+
         $exceptions->report(function (TokenMismatchException $exception): void {
             $request = request();
             $sessionCookie = (string) config('session.cookie');
