@@ -97,12 +97,19 @@ document.addEventListener('submit', (event) => {
     return;
   }
 
+  if (form.dataset.csrfFresh === '1') {
+    delete form.dataset.csrfFresh;
+    return;
+  }
+
   if (form.dataset.csrfRefreshing === '1') {
+    event.preventDefault();
     return;
   }
 
   event.preventDefault();
   form.dataset.csrfRefreshing = '1';
+  const submitter = event.submitter instanceof HTMLElement ? event.submitter : null;
 
   refreshFormToken(form)
     .catch(() => {
@@ -110,6 +117,19 @@ document.addEventListener('submit', (event) => {
     })
     .finally(() => {
       delete form.dataset.csrfRefreshing;
+
+      if (typeof form.requestSubmit === 'function') {
+        form.dataset.csrfFresh = '1';
+
+        if (submitter && 'form' in submitter && submitter.form === form) {
+          form.requestSubmit(submitter);
+          return;
+        }
+
+        form.requestSubmit();
+        return;
+      }
+
       nativeSubmit.call(form);
     });
 });
