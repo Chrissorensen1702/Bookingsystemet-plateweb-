@@ -23,10 +23,10 @@
 
       <div class="login-card">
         <div class="login-copy">
-          <h1>Backoffice log-in</h1>
+          <h1>Virksomheds log-in til PlateBooking</h1>
           <p class="login-text">
             Brug din registerede email og adgangskode, for at
-            komme ind til kalender og indstillinger.
+            komme ind til kalender, indstillinger samt administere bookbarhed.
           </p>
         </div>
 
