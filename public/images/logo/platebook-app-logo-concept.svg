@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" fill="none">
+  <defs>
+    <linearGradient id="pb-bg" x1="120" y1="96" x2="904" y2="944" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0F3D91" />
+      <stop offset="52%" stop-color="#275EBA" />
+      <stop offset="100%" stop-color="#20C5C7" />
+    </linearGradient>
+    <linearGradient id="pb-top" x1="230" y1="168" x2="796" y2="388" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#123B84" />
+      <stop offset="100%" stop-color="#11B7D9" />
+    </linearGradient>
+    <linearGradient id="pb-check" x1="500" y1="664" x2="760" y2="528" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#E8C547" />
+      <stop offset="100%" stop-color="#FFFFFF" />
+    </linearGradient>
+    <radialGradient id="pb-glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(770 255) rotate(135) scale(360)">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.34" />
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0" />
+    </radialGradient>
+    <filter id="pb-card-shadow" x="184" y="130" width="656" height="770" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="20" stdDeviation="20" flood-color="#0B1B42" flood-opacity="0.24" />
+    </filter>
+    <clipPath id="pb-card-clip">
+      <rect x="228" y="168" width="568" height="688" rx="128" />
+    </clipPath>
+  </defs>
+
+  <rect x="56" y="56" width="912" height="912" rx="224" fill="url(#pb-bg)" />
+  <rect x="56" y="56" width="912" height="912" rx="224" stroke="rgb(255 255 255 / 22%)" stroke-width="2" />
+  <circle cx="770" cy="255" r="290" fill="url(#pb-glow)" />
+
+  <g filter="url(#pb-card-shadow)">
+    <rect x="228" y="168" width="568" height="688" rx="128" fill="rgb(255 255 255 / 14%)" />
+    <rect x="228" y="168" width="568" height="688" rx="128" stroke="rgb(255 255 255 / 26%)" stroke-width="2" />
+    <g clip-path="url(#pb-card-clip)">
+      <rect x="228" y="168" width="568" height="216" fill="url(#pb-top)" />
+      <rect x="228" y="328" width="568" height="56" fill="rgb(255 255 255 / 8%)" />
+    </g>
+  </g>
+
+  <rect x="388" y="222" width="44" height="84" rx="22" fill="#FFFFFF" />
+  <rect x="592" y="222" width="44" height="84" rx="22" fill="#FFFFFF" />
+
+  <g>
+    <rect x="334" y="250" width="356" height="500" rx="92" fill="rgb(255 255 255 / 13%)" />
+    <rect x="334" y="250" width="356" height="500" rx="92" stroke="rgb(255 255 255 / 30%)" stroke-width="2" />
+    <rect x="334" y="250" width="356" height="138" rx="92" fill="rgb(255 255 255 / 20%)" />
+    <rect x="334" y="362" width="356" height="26" fill="rgb(255 255 255 / 12%)" />
+
+    <rect x="394" y="438" width="56" height="50" rx="12" fill="rgb(255 255 255 / 22%)" />
+    <rect x="484" y="438" width="56" height="50" rx="12" fill="rgb(255 255 255 / 22%)" />
+    <rect x="574" y="438" width="56" height="50" rx="12" fill="rgb(255 255 255 / 22%)" />
+
+    <rect x="394" y="518" width="56" height="50" rx="12" fill="rgb(255 255 255 / 18%)" />
+    <rect x="484" y="518" width="56" height="50" rx="12" fill="rgb(255 255 255 / 18%)" />
+    <rect x="574" y="518" width="56" height="50" rx="12" fill="rgb(255 255 255 / 18%)" />
+
+    <rect x="394" y="598" width="56" height="50" rx="12" fill="rgb(255 255 255 / 14%)" />
+    <rect x="484" y="598" width="56" height="50" rx="12" fill="rgb(255 255 255 / 14%)" />
+    <rect x="574" y="598" width="56" height="50" rx="12" fill="rgb(255 255 255 / 14%)" />
+  </g>
+
+  <circle cx="640" cy="634" r="98" fill="rgb(15 61 145 / 0.82)" />
+  <circle cx="640" cy="634" r="98" stroke="rgb(255 255 255 / 40%)" stroke-width="2" />
+  <path d="M593 636L628 671L692 597" stroke="url(#pb-check)" stroke-width="36" stroke-linecap="round" stroke-linejoin="round" />
+</svg>
