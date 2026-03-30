@@ -250,8 +250,8 @@
     align-items: center;
     justify-content: center;
     flex-wrap: nowrap;
-    gap: 14px;
-    padding-inline: 6px;
+    gap: 18px;
+    padding-inline: 10px;
   }
 
   .sidebar-brand {
@@ -263,7 +263,7 @@
     grid-auto-flow: column;
     grid-auto-columns: auto;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     width: auto;
     overflow: visible;
     padding: 0;
@@ -289,7 +289,7 @@
     width: auto;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     padding-top: 0;
     border-top: 0;
     flex: none;
@@ -299,14 +299,14 @@
     width: auto;
     grid-template-columns: repeat(2, 42px);
     justify-content: end;
-    gap: 10px;
+    gap: 12px;
   }
 
   .sidebar-bottom-profile-actions {
     width: auto;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
   }
 
   .sidebar-profile-link {
@@ -343,12 +343,12 @@
 
 @media (max-width: 640px) {
   .header-center {
-    gap: 10px;
-    padding-inline: 4px;
+    gap: 12px;
+    padding-inline: 8px;
   }
 
   .sidebar-nav {
-    gap: 8px;
+    gap: 10px;
   }
 
   .sidebar-nav .nav-link {
@@ -366,7 +366,7 @@
   .sidebar-bottom,
   .sidebar-admin-nav,
   .sidebar-bottom-profile-actions {
-    gap: 8px;
+    gap: 10px;
   }
 
   .sidebar-profile-link {
