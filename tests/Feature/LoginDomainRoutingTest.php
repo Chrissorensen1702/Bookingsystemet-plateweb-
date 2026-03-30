@@ -34,6 +34,12 @@ test('legacy login path redirects to the dedicated login domain', function () {
     $response->assertRedirect(route('login'));
 });
 
+test('login domain login path redirects to the canonical login page', function () {
+    $response = $this->get('https://login.platebook.dk/login');
+
+    $response->assertRedirect('https://login.platebook.dk');
+});
+
 test('protected app routes redirect guests to the dedicated login domain', function () {
     config(['app.url' => 'https://platebook.dk']);
 
@@ -64,6 +70,42 @@ test('successful login on the login domain redirects back to the main app url', 
     ]);
 
     $response->assertRedirect('http://platebook.dk');
+});
+
+test('successful login ignores stale intended urls on the login domain', function () {
+    config(['app.url' => 'https://platebook.dk']);
+
+    $user = User::factory()->create([
+        'email' => 'medarbejder@example.com',
+        'password' => Hash::make('SecurePass123!'),
+    ]);
+
+    $response = $this
+        ->withSession(['url.intended' => 'https://login.platebook.dk/login'])
+        ->post(route('login.store'), [
+            'email' => $user->email,
+            'password' => 'SecurePass123!',
+        ]);
+
+    $response->assertRedirect('https://platebook.dk');
+});
+
+test('successful login still respects intended app urls', function () {
+    config(['app.url' => 'https://platebook.dk']);
+
+    $user = User::factory()->create([
+        'email' => 'medarbejder@example.com',
+        'password' => Hash::make('SecurePass123!'),
+    ]);
+
+    $response = $this
+        ->withSession(['url.intended' => 'https://platebook.dk/profil'])
+        ->post(route('login.store'), [
+            'email' => $user->email,
+            'password' => 'SecurePass123!',
+        ]);
+
+    $response->assertRedirect('https://platebook.dk/profil');
 });
 
 test('app route helper keeps platform links on the main app host', function () {

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   @include('layouts.partials.pwa-meta')
-  <title>homepage</title>
+  <title>{{ trim($__env->yieldContent('title')) !== '' ? trim($__env->yieldContent('title')).' | Bookingsystem' : 'Bookingsystem' }}</title>
   @vite(['resources/css/app-dashboard.css', 'resources/js/app.js', 'resources/js/pwa.js'])
 </head>
 

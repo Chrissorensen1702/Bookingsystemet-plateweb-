@@ -1,5 +1,7 @@
 @extends('layouts.default')
 
+@section('title', 'Ydelser')
+
 @section('body-class', 'booking-home-body')
 
 @section('header')

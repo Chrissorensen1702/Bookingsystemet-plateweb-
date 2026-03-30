@@ -1,5 +1,7 @@
 @extends('layouts.default')
 
+@section('title', 'Kalender')
+
 @section('body-class', 'booking-home-body')
 
 @section('header')

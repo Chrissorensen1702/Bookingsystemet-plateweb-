@@ -1,5 +1,7 @@
 @extends('layouts.default')
 
+@section('title', 'Min profil')
+
 @section('body-class', 'profile-page-body')
 
 @section('header')

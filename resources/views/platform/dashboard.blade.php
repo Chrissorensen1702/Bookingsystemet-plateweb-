@@ -93,6 +93,10 @@
 
     <section class="platform-dashboard-grid">
       <article class="platform-card platform-card-accent">
+        @php
+          $suggestedSubdomain = \Illuminate\Support\Str::slug((string) old('name', 'virksomhedsnavn'));
+          $suggestedSubdomain = $suggestedSubdomain !== '' ? $suggestedSubdomain : 'virksomhedsnavn';
+        @endphp
         <div class="platform-card-header">
           <div>
             <p class="platform-eyebrow">Ny forretning</p>
@@ -112,20 +116,13 @@
           <label class="platform-field">
             <span>Virksomhedsnavn</span>
             <input type="text" name="name" value="{{ old('name') }}" required>
+            <small class="platform-muted">Systemet laver automatisk et subdomæne ud fra navnet, fx `{{ $suggestedSubdomain }}.platebook.dk`.</small>
           </label>
 
-          <div class="platform-form-grid">
-            <label class="platform-field">
-              <span>Virksomheds-slug (subdomæne, valgfri)</span>
-              <input type="text" name="slug" value="{{ old('slug') }}" placeholder="fx salonnavn">
-              <small class="platform-muted">Bruges som `salonnavn.platebook.dk`. Lad feltet stå tomt, hvis systemet skal foresla en slug.</small>
-            </label>
-
-            <label class="platform-field">
-              <span>Tidszone</span>
-              <input type="text" name="timezone" value="{{ old('timezone', config('app.timezone', 'UTC')) }}" required>
-            </label>
-          </div>
+          <label class="platform-field">
+            <span>Tidszone</span>
+            <input type="text" name="timezone" value="{{ old('timezone', config('app.timezone', 'UTC')) }}" required>
+          </label>
 
           <label class="platform-field">
             <span>Abonnement</span>
@@ -149,13 +146,13 @@
 
         <div class="platform-note-list">
           <article class="platform-note-card">
-            <strong>URL-model</strong>
-            <p>Virksomheden far sit eget subdomæne, og hver lokation far sin egen sti under det.</p>
+            <strong>Automatisk subdomæne</strong>
+            <p>Du skal ikke selv skrive slug ved oprettelse. Vi bruger virksomhedsnavnet og laver det om til et URL-venligt subdomæne.</p>
           </article>
 
           <article class="platform-note-card">
-            <strong>Næste skridt</strong>
-            <p>Efter oprettelse kan du ga direkte til butikken, oprette ejer, justere slug og aabne offentlig booking.</p>
+            <strong>Kan stadig ændres bagefter</strong>
+            <p>Når virksomheden er oprettet, kan du stadig ga ind og justere subdomænet manuelt, hvis du vil have en anden URL.</p>
           </article>
         </div>
       </article>

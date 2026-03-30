@@ -25,6 +25,7 @@ $publicRootDomain = trim(RouteUrls::publicRootDomain());
 if ($loginDomain !== '') {
     Route::domain($loginDomain)->group(function (): void {
         Route::get('/', [LoginController::class, 'show'])->name('login');
+        Route::get('/login', fn () => to_route('login'));
         Route::post('/login', [LoginController::class, 'store'])
             ->middleware('throttle:login')
             ->name('login.store');
