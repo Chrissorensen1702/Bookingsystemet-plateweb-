@@ -3,7 +3,7 @@
 return [
     'auth' => [
         // Temporarily disable in environments where mail delivery is not configured.
-        'require_verified_email' => (bool) env('AUTH_REQUIRE_VERIFIED_EMAIL', true),
+        'require_verified_email' => (bool) env('AUTH_REQUIRE_VERIFIED_EMAIL', false),
     ],
 
     'password' => [

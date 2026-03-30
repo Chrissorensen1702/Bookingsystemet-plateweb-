@@ -91,7 +91,7 @@ Route::middleware('auth')->group(function (): void {
 
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 
-    $requireVerifiedEmail = (bool) config('security.auth.require_verified_email', true);
+    $requireVerifiedEmail = (bool) config('security.auth.require_verified_email', false);
 
     Route::middleware($requireVerifiedEmail ? ['verified'] : [])->group(function (): void {
         Route::get('/', BookingCalendarController::class)->name('booking-calender');
