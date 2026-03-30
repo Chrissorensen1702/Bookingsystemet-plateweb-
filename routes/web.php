@@ -91,7 +91,9 @@ Route::middleware('auth')->group(function (): void {
 
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
 
-    Route::middleware('verified')->group(function (): void {
+    $requireVerifiedEmail = (bool) config('security.auth.require_verified_email', true);
+
+    Route::middleware($requireVerifiedEmail ? ['verified'] : [])->group(function (): void {
         Route::get('/', BookingCalendarController::class)->name('booking-calender');
         Route::get('/mine-vagter', MyShiftsController::class)->name('my-shifts.index');
         Route::get('/bookinger/time-options', [BookingCalendarController::class, 'timeOptions'])

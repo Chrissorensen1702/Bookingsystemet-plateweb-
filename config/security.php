@@ -1,6 +1,11 @@
 <?php
 
 return [
+    'auth' => [
+        // Temporarily disable in environments where mail delivery is not configured.
+        'require_verified_email' => (bool) env('AUTH_REQUIRE_VERIFIED_EMAIL', true),
+    ],
+
     'password' => [
         // If true, passwords are checked against known leaked-password data.
         // Keep false in local/dev if you want faster validation without external checks.
