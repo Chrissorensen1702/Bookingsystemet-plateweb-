@@ -45,6 +45,17 @@ test('login domain login path redirects to the canonical login page', function (
     $response->assertRedirect('https://login.platebook.dk');
 });
 
+test('login page uses a versioned service worker url to bypass stale edge caches', function () {
+    $response = $this->get('https://login.platebook.dk/');
+    $serviceWorkerVersion = @filemtime(public_path('sw.js'));
+
+    $response->assertOk();
+    $response->assertSee(
+        'meta name="pwa-sw-url" content="https://login.platebook.dk/sw.js?v='.$serviceWorkerVersion.'"',
+        false
+    );
+});
+
 test('login domain responses disable caching and clear legacy host-only auth cookies', function () {
     $response = $this->get('https://login.platebook.dk/');
 

@@ -1,3 +1,12 @@
+@php
+  $serviceWorkerVersion = @filemtime(public_path('sw.js'));
+  $serviceWorkerUrl = asset('sw.js');
+
+  if ($serviceWorkerVersion !== false) {
+    $serviceWorkerUrl .= '?v='.$serviceWorkerVersion;
+  }
+@endphp
+
 <meta name="theme-color" content="#5c80bc">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -6,5 +15,5 @@
 <link rel="manifest" href="{{ asset('site.webmanifest') }}">
 <link rel="icon" type="image/png" sizes="192x192" href="{{ asset('images/logo/pwa-192-v2.png') }}">
 <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/logo/apple-touch-icon-v2.png') }}">
-<meta name="pwa-sw-url" content="{{ asset('sw.js') }}">
+<meta name="pwa-sw-url" content="{{ $serviceWorkerUrl }}">
 <meta name="pwa-disable-sw" content="1">
