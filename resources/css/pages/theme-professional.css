@@ -1,0 +1,454 @@
+:root {
+  --ui-card-radius: 16px;
+  --ui-card-radius-lg: 20px;
+  --ui-card-border: rgb(var(--color-border-rgb) / 0.86);
+  --ui-card-bg:
+    linear-gradient(
+      180deg,
+      rgb(var(--color-surface-rgb) / 0.99) 0%,
+      rgb(var(--color-surface-alt-rgb) / 0.32) 100%
+    );
+  --ui-card-shadow: 0 14px 30px rgb(var(--color-header-ink-rgb) / 0.12);
+  --ui-card-shadow-soft: 0 10px 22px rgb(var(--color-header-ink-rgb) / 0.08);
+
+  --ui-field-height: 44px;
+  --ui-field-radius: 12px;
+  --ui-field-border: rgb(var(--color-border-rgb) / 0.92);
+  --ui-field-bg: rgb(var(--color-surface-rgb) / 0.96);
+  --ui-field-bg-muted: rgb(var(--color-surface-alt-rgb) / 0.36);
+  --ui-focus-ring: 0 0 0 3px rgb(var(--color-primary-rgb) / 0.18);
+
+  --ui-button-radius: 12px;
+  --ui-button-shadow: 0 10px 22px rgb(var(--color-header-ink-rgb) / 0.2);
+  --ui-button-bg:
+    linear-gradient(
+      135deg,
+      rgb(var(--color-header-ink-rgb) / 0.98) 0%,
+      rgb(var(--color-primary-rgb) / 0.96) 72%
+    );
+  --ui-button-bg-hover:
+    linear-gradient(
+      135deg,
+      rgb(var(--color-header-ink-rgb) / 1) 0%,
+      rgb(var(--color-primary-rgb) / 1) 72%
+    );
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.main-content > :is(
+    .booking-table-page,
+    .services-page,
+    .users-page,
+    .availability-page,
+    .settings-page,
+    .my-shifts-page
+  ) {
+  width: min(100%, 1740px);
+  margin-inline: auto;
+}
+
+:is(
+    .booking-table-card,
+    .booking-detail-card,
+    .services-card,
+    .users-card,
+    .availability-card,
+    .settings-card,
+    .my-shifts-card,
+    .profile-card,
+    .platform-card,
+    .public-booking-card,
+    .public-booking-form-card
+  ) {
+  border-radius: var(--ui-card-radius);
+  border-color: var(--ui-card-border);
+  background: var(--ui-card-bg);
+  box-shadow: var(--ui-card-shadow-soft);
+}
+
+.public-booking-card,
+.public-booking-form-card {
+  border-radius: var(--ui-card-radius-lg);
+}
+
+:is(
+    .services-tools,
+    .services-group,
+    .services-list-item,
+    .services-empty,
+    .availability-tools,
+    .availability-list-item,
+    .availability-override-card,
+    .availability-empty,
+    .settings-block,
+    .settings-preview,
+    .users-list-item,
+    .users-location-list,
+    .my-shifts-tools,
+    .my-shifts-list-scroll,
+    .my-shift-row,
+    .profile-avatar-panel,
+    .profile-passkey-panel,
+    .profile-passkey-item,
+    .platform-branding-block,
+    .platform-branding-preview,
+    .platform-tenant-item,
+    .platform-location-item,
+    .public-booking-hours-row,
+    .public-booking-empty,
+    .public-booking-service-option,
+    .public-booking-slot-option,
+    .public-booking-staff-option
+  ) {
+  border-radius: 14px;
+  border-color: rgb(var(--color-border-rgb) / 0.86);
+  background: rgb(var(--color-surface-rgb) / 0.92);
+}
+
+:is(
+    .services-section-head,
+    .availability-section-head,
+    .settings-section-head,
+    .users-section-head,
+    .my-shifts-head,
+    .profile-head,
+    .platform-section-head,
+    .public-booking-section-head
+  )
+  :is(h1, h2) {
+  letter-spacing: -0.02em;
+  line-height: 1.12;
+}
+
+:is(
+    .services-text,
+    .availability-text,
+    .settings-text,
+    .users-text,
+    .my-shifts-text,
+    .profile-head p,
+    .platform-muted,
+    .public-booking-help
+  ) {
+  line-height: 1.62;
+}
+
+:is(
+    .services-field,
+    .availability-field,
+    .settings-field,
+    .users-field,
+    .profile-field,
+    .my-shifts-field,
+    .platform-field,
+    .public-booking-field,
+    .booking-filter-field
+  )
+  :is(
+    input:not([type='checkbox']):not([type='radio']):not([type='color']),
+    select,
+    textarea
+  ),
+:is(
+    .booking-detail-form,
+    .booking-mobile-edit-form,
+    .booking-mobile-create-form
+  )
+  :is(input:not([type='checkbox']):not([type='radio']), select, textarea),
+.public-booking-location-switch select,
+.public-booking-location-switch-side select {
+  border: 1px solid var(--ui-field-border);
+  border-radius: var(--ui-field-radius);
+  background: var(--ui-field-bg);
+  color: rgb(var(--color-text-rgb) / 1);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+:is(
+    .services-field,
+    .availability-field,
+    .settings-field,
+    .users-field,
+    .profile-field,
+    .my-shifts-field,
+    .platform-field,
+    .public-booking-field,
+    .booking-filter-field
+  )
+  :is(
+    input:not([type='checkbox']):not([type='radio']):not([type='color']),
+    select
+  ),
+:is(
+    .booking-detail-form,
+    .booking-mobile-edit-form,
+    .booking-mobile-create-form
+  )
+  :is(input:not([type='checkbox']):not([type='radio']), select),
+.public-booking-location-switch select,
+.public-booking-location-switch-side select {
+  min-height: var(--ui-field-height);
+}
+
+:is(
+    .services-field,
+    .availability-field,
+    .settings-field,
+    .users-field,
+    .profile-field,
+    .my-shifts-field,
+    .platform-field,
+    .public-booking-field,
+    .booking-filter-field
+  )
+  :is(
+    input:not([type='checkbox']):not([type='radio']):not([type='color']),
+    select,
+    textarea
+  ):focus-visible,
+:is(
+    .booking-detail-form,
+    .booking-mobile-edit-form,
+    .booking-mobile-create-form
+  )
+  :is(input:not([type='checkbox']):not([type='radio']), select, textarea):focus-visible,
+.public-booking-location-switch select:focus-visible,
+.public-booking-location-switch-side select:focus-visible {
+  outline: none;
+  border-color: rgb(var(--color-primary-rgb) / 0.85);
+  box-shadow: var(--ui-focus-ring);
+}
+
+:is(
+    .services-field,
+    .availability-field,
+    .settings-field,
+    .users-field,
+    .profile-field,
+    .my-shifts-field,
+    .platform-field
+  )
+  input[readonly] {
+  background: var(--ui-field-bg-muted);
+}
+
+:is(
+    .services-button,
+    .users-button,
+    .availability-button,
+    .settings-button,
+    .profile-actions button,
+    .profile-passkey-create-button,
+    .public-booking-button,
+    .booking-filter-actions button,
+    .booking-filter-reset,
+    .booking-mobile-day-button,
+    .booking-detail-form button,
+    .booking-mobile-edit-form button,
+    .booking-mobile-create-form button,
+    .platform-button-primary,
+    .login-button
+  ) {
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.9);
+  border-radius: var(--ui-button-radius);
+  background: var(--ui-button-bg);
+  color: #fff;
+  box-shadow: var(--ui-button-shadow);
+  transition: transform 0.16s ease, filter 0.16s ease, box-shadow 0.16s ease;
+}
+
+:is(
+    .services-button,
+    .users-button,
+    .availability-button,
+    .settings-button,
+    .profile-actions button,
+    .profile-passkey-create-button,
+    .public-booking-button,
+    .booking-filter-actions button,
+    .booking-filter-reset,
+    .booking-mobile-day-button,
+    .booking-detail-form button,
+    .booking-mobile-edit-form button,
+    .booking-mobile-create-form button,
+    .platform-button-primary,
+    .login-button
+  ):hover {
+  background: var(--ui-button-bg-hover);
+  box-shadow: 0 14px 24px rgb(var(--color-header-ink-rgb) / 0.24);
+  transform: translateY(-1px);
+}
+
+:is(
+    .services-button-ghost,
+    .users-button-ghost,
+    .availability-button-ghost,
+    .settings-button-ghost,
+    .services-button-muted,
+    .users-button-muted,
+    .public-booking-button-secondary,
+    .platform-button,
+    .platform-link-button,
+    .booking-mobile-modal-close,
+    .services-kind-button,
+    .booking-now-follow-toggle,
+    .booking-mobile-day-label-button,
+    .public-booking-login-link,
+    .public-booking-login-link-side,
+    .login-button-secondary
+  ) {
+  border-color: rgb(var(--color-border-rgb) / 0.94);
+  border-radius: var(--ui-button-radius);
+  background: rgb(var(--color-surface-rgb) / 0.96);
+  color: rgb(var(--color-text-rgb) / 0.96);
+  box-shadow: none;
+}
+
+:is(
+    .services-button-ghost,
+    .users-button-ghost,
+    .availability-button-ghost,
+    .settings-button-ghost,
+    .services-button-muted,
+    .users-button-muted,
+    .public-booking-button-secondary,
+    .platform-button,
+    .platform-link-button,
+    .booking-mobile-modal-close,
+    .services-kind-button,
+    .booking-now-follow-toggle,
+    .booking-mobile-day-label-button,
+    .public-booking-login-link,
+    .public-booking-login-link-side,
+    .login-button-secondary
+  ):hover {
+  border-color: rgb(var(--color-primary-rgb) / 0.55);
+  background: rgb(var(--color-primary-rgb) / 0.1);
+  color: rgb(var(--color-primary-rgb) / 1);
+}
+
+:is(
+    .services-button-danger,
+    .users-button-danger,
+    .platform-button-danger,
+    .booking-table-slot-action-cancel,
+    .profile-passkey-delete,
+    .availability-link-button
+  ) {
+  border-color: rgb(185 28 28 / 0.95);
+  background: linear-gradient(135deg, rgb(185 28 28 / 0.95), rgb(127 29 29 / 0.96));
+  color: #fff;
+}
+
+:is(
+    .services-button-danger,
+    .users-button-danger,
+    .platform-button-danger,
+    .booking-table-slot-action-cancel,
+    .profile-passkey-delete,
+    .availability-link-button
+  ):hover {
+  border-color: rgb(153 27 27 / 1);
+  background: linear-gradient(135deg, rgb(153 27 27 / 1), rgb(127 29 29 / 1));
+}
+
+:is(
+    .services-create-fab,
+    .availability-create-fab
+  ) {
+  background: var(--ui-button-bg);
+  box-shadow: var(--ui-button-shadow);
+}
+
+:is(
+    .services-create-fab:hover,
+    .availability-create-fab:hover
+  ) {
+  filter: none;
+  background: var(--ui-button-bg-hover);
+}
+
+:is(
+    .services-alert,
+    .availability-alert,
+    .settings-alert,
+    .users-alert,
+    .profile-alert,
+    .booking-table-alert,
+    .platform-alert,
+    .public-booking-alert,
+    .login-alert
+  ) {
+  border-radius: 12px;
+  border-width: 1px;
+}
+
+:is(
+    .services-alert-success,
+    .availability-alert-success,
+    .settings-alert-success,
+    .users-alert-success,
+    .profile-alert-success,
+    .platform-alert-success,
+    .login-alert.is-success,
+    .public-booking-success
+  ) {
+  border-color: rgb(var(--color-primary-rgb) / 0.32);
+  background: rgb(var(--color-primary-rgb) / 0.12);
+}
+
+.users-page-nav {
+  border: 1px solid rgb(var(--color-border-rgb) / 0.88);
+  border-radius: 14px;
+  background:
+    linear-gradient(
+      180deg,
+      rgb(var(--color-primary-rgb) / 0.14) 0%,
+      rgb(var(--color-primary-rgb) / 0.06) 40%,
+      rgb(var(--color-surface-rgb) / 0.96) 100%
+    );
+  box-shadow: var(--ui-card-shadow-soft);
+}
+
+.users-page-nav-link {
+  border-radius: 11px;
+  background: rgb(var(--color-surface-rgb) / 0.78);
+}
+
+.users-page-nav-link.is-active {
+  background: rgb(var(--color-primary-rgb) / 0.18);
+}
+
+:is(
+    .services-badge,
+    .availability-badge,
+    .public-booking-tag,
+    .platform-tenant-status.is-active
+  ) {
+  border-radius: 999px;
+  border: 1px solid rgb(var(--color-primary-rgb) / 0.34);
+  background: rgb(var(--color-primary-rgb) / 0.14);
+  color: rgb(var(--color-primary-rgb) / 1);
+}
+
+@media (max-width: 980px) {
+  :is(
+      .booking-table-card,
+      .booking-detail-card,
+      .services-card,
+      .users-card,
+      .availability-card,
+      .settings-card,
+      .my-shifts-card,
+      .profile-card,
+      .platform-card,
+      .public-booking-card,
+      .public-booking-form-card
+    ) {
+    border-radius: 13px;
+  }
+}

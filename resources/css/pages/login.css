@@ -7,8 +7,14 @@ body {
 body.login-page-body {
   font-family: "Sora", "Inter", system-ui, sans-serif;
   background:
-    radial-gradient(circle at top left, rgb(var(--color-primary-rgb) / 0.18), transparent 28%),
-    linear-gradient(180deg, rgb(var(--color-surface-rgb) / 1) 0%, rgb(var(--color-bg-rgb) / 1) 100%);
+    radial-gradient(circle at 8% 10%, rgb(var(--color-header-ink-rgb) / 0.18), transparent 36%),
+    radial-gradient(circle at 94% 0%, rgb(var(--color-primary-rgb) / 0.18), transparent 34%),
+    linear-gradient(
+      180deg,
+      rgb(var(--color-surface-rgb) / 1) 0%,
+      rgb(var(--color-header-surface-rgb) / 0.84) 52%,
+      rgb(var(--color-bg-rgb) / 1) 100%
+    );
   color: rgb(var(--color-text-rgb) / 1);
 }
 
@@ -22,9 +28,9 @@ body.login-page-body {
 }
 
 .login-panel {
-  width: min(100%, 500px);
+  width: min(100%, 530px);
   display: grid;
-  gap: 8px;
+  gap: 12px;
 }
 
 .login-brand {
@@ -42,12 +48,37 @@ body.login-page-body {
 
 .login-card {
   display: grid;
-  gap: 24px;
-  padding: 50px;
-  border: 1px solid rgb(var(--color-text-rgb) / 10%);
+  gap: 22px;
+  padding: 42px;
+  border: 1px solid rgb(var(--color-header-ink-rgb) / 0.18);
   border-radius: 22px;
-  background: rgb(var(--color-surface-rgb) / 0.98);
-  box-shadow: 0 18px 42px rgb(48 50 61 / 10%);
+  background:
+    linear-gradient(
+      180deg,
+      rgb(var(--color-surface-rgb) / 0.98) 0%,
+      rgb(var(--color-header-surface-rgb) / 0.72) 100%
+    );
+  box-shadow:
+    0 22px 48px rgb(var(--color-header-ink-rgb) / 0.16),
+    0 1px 0 rgb(var(--color-surface-rgb) / 0.72) inset;
+  backdrop-filter: blur(8px);
+  position: relative;
+  overflow: hidden;
+}
+
+.login-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    rgb(var(--color-header-ink-rgb) / 0.9) 0%,
+    rgb(var(--color-primary-rgb) / 0.86) 60%,
+    rgb(var(--color-accent-rgb) / 0.88) 100%
+  );
 }
 
 .login-copy,
@@ -83,14 +114,14 @@ body.login-page-body {
 
 .login-copy h1 {
   margin: 0;
-  font-size: clamp(28px, 4vw, 36px);
-  line-height: 1.05;
+  font-size: clamp(30px, 4vw, 38px);
+  line-height: 1.02;
   color: rgb(var(--color-text-rgb) / 1);
 }
 
 .login-text {
   margin: 0;
-  color: rgb(var(--color-text-rgb) / 0.74);
+  color: rgb(var(--color-text-rgb) / 0.8);
   line-height: 1.6;
 }
 
@@ -108,10 +139,10 @@ body.login-page-body {
   width: 100%;
   min-height: 48px;
   padding: 0 14px;
-  border: 1px solid rgb(var(--color-text-rgb) / 14%);
+  border: 1px solid rgb(var(--color-header-ink-rgb) / 0.2);
   border-radius: 12px;
   box-sizing: border-box;
-  background: rgb(var(--color-surface-rgb) / 1);
+  background: rgb(var(--color-surface-rgb) / 0.94);
   color: rgb(var(--color-text-rgb) / 1);
   font: inherit;
 }
@@ -131,7 +162,7 @@ body.login-page-body {
   transform: translateY(-50%);
   min-height: 32px;
   padding: 0 10px;
-  border: 1px solid rgb(var(--color-text-rgb) / 12%);
+  border: 1px solid rgb(var(--color-header-ink-rgb) / 0.18);
   border-radius: 9px;
   background: rgb(var(--color-surface-rgb) / 1);
   color: rgb(var(--color-text-rgb) / 0.85);
@@ -170,21 +201,27 @@ body.login-page-body {
   min-height: 48px;
   border: 0;
   border-radius: 12px;
-  background: rgb(var(--color-primary-rgb) / 1);
+  background: linear-gradient(
+    135deg,
+    rgb(var(--color-header-ink-rgb) / 0.98) 0%,
+    rgb(var(--color-primary-rgb) / 0.96) 70%
+  );
   color: rgb(255 255 255 / 1);
   font: inherit;
   font-weight: 700;
   cursor: pointer;
+  box-shadow: 0 10px 22px rgb(var(--color-header-ink-rgb) / 0.24);
 }
 
 .login-button:hover {
-  background: rgb(var(--color-primary-rgb) / 0.9);
+  filter: saturate(1.08);
 }
 
 .login-button-secondary {
-  border: 1px solid rgb(var(--color-border-rgb) / 0.95);
-  background: rgb(var(--color-surface-rgb) / 1);
+  border: 1px solid rgb(var(--color-header-ink-rgb) / 0.24);
+  background: rgb(var(--color-surface-rgb) / 0.92);
   color: rgb(var(--color-text-rgb) / 1);
+  box-shadow: none;
 }
 
 .login-button-secondary:hover {
@@ -404,6 +441,7 @@ body.login-page-body {
   .login-card {
     align-self: start;
     align-content: start;
+    padding: 24px;
     gap: 8px;
   }
 

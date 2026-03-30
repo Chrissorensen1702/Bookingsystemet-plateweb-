@@ -4,12 +4,18 @@
   --charcoal: #4d5061;
   --glaucous: #5c80bc;
   --ash-grey: #cdd1c4;
+  --harbor-ink: #1f2f45;
+  --harbor-steel: #36506f;
+  --harbor-frost: #dbe3ee;
 
   --tuscan-sun-rgb: 232 197 71;
   --graphite-rgb: 48 50 61;
   --charcoal-rgb: 77 80 97;
   --glaucous-rgb: 92 128 188;
   --ash-grey-rgb: 205 209 196;
+  --harbor-ink-rgb: 31 47 69;
+  --harbor-steel-rgb: 54 80 111;
+  --harbor-frost-rgb: 219 227 238;
 
   --color-primary: var(--glaucous);
   --color-primary-hover: #4b6fa7;
@@ -34,6 +40,9 @@
   --color-text-soft-rgb: var(--charcoal-rgb);
   --color-border: var(--ash-grey);
   --color-border-rgb: var(--ash-grey-rgb);
+  --color-header-ink-rgb: var(--harbor-ink-rgb);
+  --color-header-accent-rgb: var(--harbor-steel-rgb);
+  --color-header-surface-rgb: var(--harbor-frost-rgb);
 
   --color-success: var(--glaucous);
   --color-warning: var(--tuscan-sun);
