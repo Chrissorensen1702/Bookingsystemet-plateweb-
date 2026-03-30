@@ -32,21 +32,7 @@ class RouteUrls
 
     public static function appOrigin(): ?string
     {
-        $appUrl = trim((string) config('app.url', ''));
-
-        if ($appUrl === '') {
-            return null;
-        }
-
-        $scheme = parse_url($appUrl, PHP_URL_SCHEME);
-        $host = parse_url($appUrl, PHP_URL_HOST);
-        $port = parse_url($appUrl, PHP_URL_PORT);
-
-        if (! is_string($scheme) || ! is_string($host) || $scheme === '' || $host === '') {
-            return null;
-        }
-
-        return $scheme . '://' . $host . ($port ? ':' . $port : '');
+        return self::originForHost(self::appHost());
     }
 
     public static function appHost(): string
@@ -56,13 +42,60 @@ class RouteUrls
 
     public static function appRequest(Request $request): string
     {
-        $generator = clone app(UrlGenerator::class);
-        $generator->useOrigin((string) config('app.url'));
+        $appOrigin = self::appOrigin();
 
-        $path = '/'.ltrim($request->getPathInfo(), '/');
-        $query = $request->getQueryString();
+        if ($appOrigin === null) {
+            return $request->getRequestUri();
+        }
 
-        return $generator->to($path).($query !== null && $query !== '' ? '?'.$query : '');
+        return self::requestOnOrigin($request, $appOrigin);
+    }
+
+    public static function loginHost(): string
+    {
+        return trim((string) config('security.auth.login_domain', ''));
+    }
+
+    public static function loginOrigin(): ?string
+    {
+        $loginHost = self::loginHost();
+
+        if ($loginHost === '') {
+            return null;
+        }
+
+        return self::originForHost($loginHost);
+    }
+
+    public static function loginHome(): string
+    {
+        $loginOrigin = self::loginOrigin();
+
+        if ($loginOrigin !== null) {
+            return $loginOrigin;
+        }
+
+        return self::app('login');
+    }
+
+    public static function loginRequest(Request $request): string
+    {
+        $loginOrigin = self::loginOrigin();
+
+        if ($loginOrigin === null) {
+            return self::appRequest($request);
+        }
+
+        return self::requestOnOrigin($request, $loginOrigin);
+    }
+
+    public static function platform(string $name, array $parameters = [], bool $absolute = true): string
+    {
+        $routeName = Str::startsWith($name, 'platform.')
+            ? $name
+            : 'platform.'.$name;
+
+        return self::app($routeName, $parameters, $absolute);
     }
 
     public static function publicRootDomain(): string
@@ -160,5 +193,35 @@ class RouteUrls
         }
 
         return $url . (str_contains($url, '?') ? '&' : '?') . Arr::query($query);
+    }
+
+    private static function requestOnOrigin(Request $request, string $origin): string
+    {
+        $generator = clone app(UrlGenerator::class);
+        $generator->useOrigin($origin);
+
+        $path = '/'.ltrim($request->getPathInfo(), '/');
+        $query = $request->getQueryString();
+
+        return $generator->to($path).($query !== null && $query !== '' ? '?'.$query : '');
+    }
+
+    private static function originForHost(string $host): ?string
+    {
+        $trimmedHost = trim($host);
+
+        if ($trimmedHost === '') {
+            return null;
+        }
+
+        $appUrl = trim((string) config('app.url', ''));
+        $scheme = parse_url($appUrl, PHP_URL_SCHEME);
+        $port = parse_url($appUrl, PHP_URL_PORT);
+
+        if (! is_string($scheme) || $scheme === '') {
+            $scheme = 'https';
+        }
+
+        return $scheme . '://' . $trimmedHost . (is_int($port) ? ':' . $port : '');
     }
 }

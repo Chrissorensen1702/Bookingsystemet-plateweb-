@@ -87,6 +87,12 @@ test('login domain root still renders when tenant subdomain routes are enabled',
     $response->assertSee('Log ind');
 });
 
+test('tenant login path redirects directly to the dedicated login domain', function () {
+    $response = $this->get('https://chrisvirksomhed.platebook.dk/login');
+
+    $response->assertRedirect('https://login.platebook.dk');
+});
+
 test('legacy public booking url redirects to canonical tenant subdomain url', function () {
     [$tenant, $location] = createPublicTenantWithLocation('chrisvirksomhed', 'bordingafdelingen');
 
@@ -111,10 +117,10 @@ test('tenant root redirects to the first active location', function () {
     $response->assertRedirect("https://{$tenant->slug}.platebook.dk/aalborg-afdeling");
 });
 
-test('non public routes on tenant subdomain redirect back to the main app host', function () {
+test('non public app routes on tenant subdomain redirect back to the main app host', function () {
     [$tenant] = createPublicTenantWithLocation('chrisvirksomhed', 'bordingafdelingen');
 
-    $response = $this->get("https://{$tenant->slug}.platebook.dk/login");
+    $response = $this->get("https://{$tenant->slug}.platebook.dk/platform/login");
 
-    $response->assertRedirect('https://platebook.dk/login');
+    $response->assertRedirect('https://platebook.dk/platform/login');
 });

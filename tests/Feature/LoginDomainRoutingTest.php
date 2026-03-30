@@ -34,6 +34,22 @@ test('legacy login path redirects to the dedicated login domain', function () {
     $response->assertRedirect(route('login'));
 });
 
+test('protected app routes redirect guests to the dedicated login domain', function () {
+    config(['app.url' => 'https://platebook.dk']);
+
+    $response = $this->get('https://platebook.dk/');
+
+    $response->assertRedirect('https://login.platebook.dk');
+});
+
+test('protected platform routes redirect guests to the platform login on the main app host', function () {
+    config(['app.url' => 'https://platebook.dk']);
+
+    $response = $this->get('https://platebook.dk/platform');
+
+    $response->assertRedirect('https://platebook.dk/platform/login');
+});
+
 test('successful login on the login domain redirects back to the main app url', function () {
     config(['app.url' => 'http://platebook.dk']);
 
@@ -58,6 +74,8 @@ test('app route helper keeps platform links on the main app host', function () {
 
     expect(RouteUrls::appHome())->toBe('https://platebook.dk');
     expect(RouteUrls::app('platform.login'))->toBe('https://platebook.dk/platform/login');
+    expect(RouteUrls::platform('dashboard'))->toBe('https://platebook.dk/platform');
+    expect(RouteUrls::loginHome())->toBe('https://login.platebook.dk');
 });
 
 test('non-login pages on the login domain redirect back to the main app host', function () {
@@ -66,4 +84,14 @@ test('non-login pages on the login domain redirect back to the main app host', f
     $response = $this->get('https://login.platebook.dk/book-tid?tenant=demo');
 
     $response->assertRedirect('https://platebook.dk/book-tid?tenant=demo');
+});
+
+test('platform login page keeps its internal urls on the main app host', function () {
+    config(['app.url' => 'https://platebook.dk']);
+
+    $response = $this->get('https://support.example.test/platform/login');
+
+    $response->assertOk();
+    $response->assertSee('href="https://platebook.dk/platform/login"', false);
+    $response->assertSee('action="https://platebook.dk/platform/login"', false);
 });
