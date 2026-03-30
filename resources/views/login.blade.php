@@ -23,10 +23,10 @@
 
       <div class="login-card">
         <div class="login-copy">
-          <h1>Log ind i bookingsystemet</h1>
+          <h1>Backoffice log-in</h1>
           <p class="login-text">
-            Brug din arbejdsmail og adgangskode for at komme ind til kalender,
-            kunder og indstillinger.
+            Brug din registerede email og adgangskode, for at
+            komme ind til kalender og indstillinger.
           </p>
         </div>
 
@@ -96,7 +96,6 @@
           <div class="login-help">
             <p>Adgang administreres internt.</p>
             <p>Kontakt systemadministratoren, hvis du mangler en bruger eller skal have nulstillet adgang.</p>
-            <a href="{{ route('public-booking.create') }}" class="login-public-link">Skal du booke en tid? Gå til online booking</a>
             <a href="{{ route('platform.login') }}" class="login-public-link">Platform login (developer)</a>
           </div>
         </form>
