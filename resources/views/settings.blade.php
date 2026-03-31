@@ -16,11 +16,16 @@
     $locations = $locations ?? collect();
     $selectedLocationId = (int) ($selectedLocationId ?? 0);
     $selectedLocation = $selectedLocation ?? null;
-    $activeSettingsView = in_array((string) ($activeSettingsView ?? 'location'), ['location', 'branding'], true)
+    $activeSettingsView = in_array((string) ($activeSettingsView ?? 'location'), ['location', 'branding', 'permissions', 'activity'], true)
       ? (string) $activeSettingsView
       : 'location';
     $canManageGlobal = (bool) ($canManageGlobal ?? false);
+    $canManageRolePermissions = (bool) ($canManageRolePermissions ?? false);
     $isLocationManager = (bool) ($isLocationManager ?? false);
+    $permissionDefinitions = is_array($permissionDefinitions ?? null) ? $permissionDefinitions : [];
+    $permissionRoleOptions = is_array($permissionRoleOptions ?? null) ? $permissionRoleOptions : [];
+    $permissionMatrix = is_array($permissionMatrix ?? null) ? $permissionMatrix : [];
+    $activityUsers = $activityUsers ?? collect();
     $globalSettingsError = $errors->first('settings');
     $firstPageError = collect($errors->keys())
       ->reject(static fn (string $key): bool => $key === 'settings')
@@ -55,10 +60,30 @@
         @endif
       </a>
 
+      <a href="{{ $settingsViewUrl('permissions') }}" class="settings-page-nav-link{{ $activeSettingsView === 'permissions' ? ' is-active' : '' }}{{ $canManageRolePermissions ? '' : ' has-badge' }}">
+        <img src="{{ asset('images/icon-pack/lucide/icons/shield.svg') }}" alt="" class="settings-page-nav-icon">
+        <span class="settings-page-nav-copy">
+          <strong>Adgangsniveau</strong>
+          <small>Rettigheder og roller</small>
+        </span>
+        @if (! $canManageRolePermissions)
+          <span class="settings-page-nav-badge">Owner</span>
+        @endif
+      </a>
+
+      <a href="{{ $settingsViewUrl('activity') }}" class="settings-page-nav-link{{ $activeSettingsView === 'activity' ? ' is-active' : '' }}">
+        <img src="{{ asset('images/icon-pack/lucide/icons/activity.svg') }}" alt="" class="settings-page-nav-icon">
+        <span class="settings-page-nav-copy">
+          <strong>Aktivitets log</strong>
+          <small>Status og historik</small>
+        </span>
+      </a>
+
     </nav>
 
     <div class="settings-layout">
-      <div class="settings-card" data-settings-panel="location" @if($activeSettingsView !== 'location') hidden @endif>
+      @if ($activeSettingsView === 'location')
+      <div class="settings-card" data-settings-panel="location">
         <div class="settings-section-head">
           <div>
             <p class="settings-eyebrow">Indstillinger</p>
@@ -261,7 +286,8 @@
         </div>
       </div>
 
-      <div class="settings-card" data-settings-panel="branding" @if($activeSettingsView !== 'branding') hidden @endif>
+      @elseif ($activeSettingsView === 'branding')
+      <div class="settings-card" data-settings-panel="branding">
         <div class="settings-section-head">
           <div>
             <p class="settings-eyebrow">Indstillinger</p>
@@ -451,6 +477,15 @@
           </form>
         </section>
       </div>
+      @elseif ($activeSettingsView === 'permissions')
+      <div class="settings-card" data-settings-panel="permissions">
+        @include('settings.partials.permissions-panel')
+      </div>
+      @elseif ($activeSettingsView === 'activity')
+      <div class="settings-card" data-settings-panel="activity">
+        @include('settings.partials.activity-panel')
+      </div>
+      @endif
 
     </div>
   </section>

@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\TenantRole;
 use App\Models\Location;
 use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Support\RouteUrls;
+use App\Support\TenantRolePermissionManager;
 use App\Support\UploadsStorage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,14 +19,16 @@ use Illuminate\View\View;
 class BrandingSettingsController extends Controller
 {
     private const OWNER_BRANDING_UPLOAD_ROOT = 'tenant-branding';
-    private const SETTINGS_VIEWS = ['location', 'branding'];
+    private const SETTINGS_VIEWS = ['location', 'branding', 'permissions', 'activity'];
 
     public function index(Request $request): View
     {
         $tenantId = $this->resolveTenantId($request);
         abort_if($tenantId <= 0, 500, 'Ingen aktiv tenant er konfigureret.');
         $user = $request->user();
+        $activeSettingsView = $this->resolveSettingsView($request);
         $canManageGlobal = $user instanceof User && $user->hasPermission('settings.global.manage');
+        $canManageRolePermissions = $user instanceof User && $user->canManageRolePermissions();
         $isLocationManager = $user instanceof User && $user->isLocationManager();
 
         $selectedLocationId = $isLocationManager
@@ -69,13 +73,42 @@ class BrandingSettingsController extends Controller
             ->whereKey((int) $tenant->plan_id)
             ->first(['id', 'name', 'requires_powered_by']);
 
+        $permissionDefinitions = [];
+        $permissionRoleOptions = [];
+        $permissionMatrix = [];
+
+        if ($activeSettingsView === 'permissions') {
+            $permissionDefinitions = $this->permissionManager()->permissionDefinitions();
+            $permissionRoleOptions = $this->permissionManager()->editableRoleOptions();
+            $permissionMatrix = $this->permissionManager()->matrixForTenant(
+                $tenantId,
+                array_keys($permissionRoleOptions)
+            );
+        }
+
+        $activityUsers = collect();
+
+        if ($activeSettingsView === 'activity' && $user instanceof User) {
+            $allowedRoles = $this->allowedRoleValuesFor($user);
+
+            $activityUsers = User::query()
+                ->where('tenant_id', $tenantId)
+                ->when(
+                    ! $user->isOwner(),
+                    static fn ($query) => $query->whereIn('role', $allowedRoles)
+                )
+                ->orderByRaw('LOWER(name)')
+                ->get(['id', 'name', 'role', 'is_active', 'is_bookable']);
+        }
+
         return view('settings', [
             'tenant' => $tenant,
             'locations' => $locations,
             'selectedLocation' => $selectedLocation,
             'selectedLocationId' => $selectedLocationId,
-            'activeSettingsView' => $this->resolveSettingsView($request),
+            'activeSettingsView' => $activeSettingsView,
             'canManageGlobal' => $canManageGlobal,
+            'canManageRolePermissions' => $canManageRolePermissions,
             'isLocationManager' => $isLocationManager,
             'publicLogoPreviewUrl' => $this->resolvePublicLogoPreviewUrl(
                 $tenant->public_logo_path,
@@ -88,6 +121,10 @@ class BrandingSettingsController extends Controller
             ], static fn (mixed $value): bool => $value !== null && $value !== '')),
             'planName' => (string) ($plan?->name ?? ''),
             'planRequiresPoweredBy' => (bool) ($plan?->requires_powered_by ?? false),
+            'permissionDefinitions' => $permissionDefinitions,
+            'permissionRoleOptions' => $permissionRoleOptions,
+            'permissionMatrix' => $permissionMatrix,
+            'activityUsers' => $activityUsers,
         ]);
     }
 
@@ -395,5 +432,38 @@ class BrandingSettingsController extends Controller
         }
 
         UploadsStorage::delete($normalizedPath);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function allowedRoleValuesFor(User $actor): array
+    {
+        $configured = config('tenant_permissions.user_management.manageable_roles.' . $actor->roleValue(), []);
+
+        if (is_array($configured)) {
+            $validRoles = array_flip(TenantRole::values());
+            $resolved = collect($configured)
+                ->map(static fn (mixed $role): string => trim((string) $role))
+                ->filter(static fn (string $role): bool => $role !== '' && isset($validRoles[$role]))
+                ->values()
+                ->all();
+
+            if ($resolved !== []) {
+                return $resolved;
+            }
+        }
+
+        return match ($actor->roleValue()) {
+            User::ROLE_OWNER => TenantRole::values(),
+            User::ROLE_LOCATION_MANAGER => [User::ROLE_MANAGER, User::ROLE_STAFF],
+            User::ROLE_MANAGER => [User::ROLE_STAFF],
+            default => [],
+        };
+    }
+
+    private function permissionManager(): TenantRolePermissionManager
+    {
+        return app(TenantRolePermissionManager::class);
     }
 }

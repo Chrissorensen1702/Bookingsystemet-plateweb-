@@ -22,10 +22,20 @@ use Illuminate\View\View;
 
 class UserManagementController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request): View|RedirectResponse
     {
         $tenantId = $this->resolveTenantId($request);
         abort_if($tenantId <= 0, 500, 'Ingen aktiv tenant er konfigureret.');
+        $requestedUsersView = trim((string) $request->query('users_view', ''));
+
+        if (in_array($requestedUsersView, ['permissions', 'activity'], true)) {
+            return redirect()->route('settings.index', $this->settingsRedirectParameters(
+                $request,
+                $tenantId,
+                $requestedUsersView
+            ));
+        }
+
         $workShiftsEnabled = $this->isWorkShiftsEnabledForTenant($tenantId);
         /** @var User $actor */
         $actor = $request->user();
@@ -235,13 +245,6 @@ class UserManagementController extends Controller
             'locationCompetencyServiceIdsByUser' => $locationCompetencyServiceIdsByUser,
             'roles' => $this->rolesFor($actor),
             'locationOptions' => $locationOptions,
-            'canManageRolePermissions' => $actor->canManageRolePermissions(),
-            'permissionDefinitions' => $this->permissionManager()->permissionDefinitions(),
-            'permissionRoleOptions' => $this->permissionManager()->editableRoleOptions(),
-            'permissionMatrix' => $this->permissionManager()->matrixForTenant(
-                $tenantId,
-                array_keys($this->permissionManager()->editableRoleOptions())
-            ),
             'selectedWorkhoursLocationId' => $selectedWorkhoursLocationId,
             'workhoursDateInput' => $workhoursDate->toDateString(),
             'workhoursWeekStart' => $workhoursWeekStart,
@@ -488,7 +491,11 @@ class UserManagementController extends Controller
         $this->permissionManager()->updateTenantRolePermissions($tenantId, $requestedMatrix);
 
         return redirect()
-            ->route('users.index', ['users_view' => 'permissions'])
+            ->route('settings.index', $this->settingsRedirectParameters(
+                $request,
+                $tenantId,
+                'permissions'
+            ))
             ->with('status', 'Rettighederne er opdateret.');
     }
 
@@ -1216,6 +1223,26 @@ class UserManagementController extends Controller
         }
 
         UploadsStorage::delete($trimmed);
+    }
+
+    /**
+     * @return array{location_id: int, settings_view: string}
+     */
+    private function settingsRedirectParameters(Request $request, int $tenantId, string $settingsView): array
+    {
+        $requestedLocationId = max(0, (int) $request->input(
+            'location_id',
+            $request->query('location_id', 0)
+        ));
+
+        $locationId = $this->canAccessLocation($request, $tenantId, $requestedLocationId)
+            ? $requestedLocationId
+            : $this->resolveLocationId($request, $tenantId);
+
+        return [
+            'location_id' => $locationId,
+            'settings_view' => $settingsView,
+        ];
     }
 
     private function permissionManager(): TenantRolePermissionManager

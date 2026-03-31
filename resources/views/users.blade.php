@@ -27,10 +27,10 @@
       ->values()
       ->all();
     $workShiftsEnabled = (bool) ($workShiftsEnabled ?? true);
-    $allowedUsersViews = ['create', 'manage', 'permissions', 'competencies', 'activity'];
+    $allowedUsersViews = ['create', 'manage', 'competencies'];
 
     if ($workShiftsEnabled) {
-      array_splice($allowedUsersViews, 4, 0, ['workhours']);
+      $allowedUsersViews[] = 'workhours';
     }
     $requestedUsersView = (string) request()->query('users_view', '');
     $activeUsersView = in_array($requestedUsersView, $allowedUsersViews, true)
@@ -39,9 +39,6 @@
     $usersViewUrl = static function (string $view): string {
       return route('users.index', array_merge(request()->query(), ['users_view' => $view]));
     };
-    $permissionDefinitions = is_array($permissionDefinitions ?? null) ? $permissionDefinitions : [];
-    $permissionRoleOptions = is_array($permissionRoleOptions ?? null) ? $permissionRoleOptions : [];
-    $permissionMatrix = is_array($permissionMatrix ?? null) ? $permissionMatrix : [];
     $competencyServices = $competencyServices ?? collect();
     $competencyUsers = $competencyUsers ?? $users;
     $locationCompetencyServiceIdsByUser = is_array($locationCompetencyServiceIdsByUser ?? null)
@@ -87,7 +84,6 @@
     $createCompetencyScope = (string) old('competency_scope', \App\Models\User::COMPETENCY_SCOPE_LOCATION);
     $selectedUserCompetencyScope = $selectedUser?->competencyScopeValue() ?? \App\Models\User::COMPETENCY_SCOPE_GLOBAL;
     $editCompetencyScope = (string) old('competency_scope', $selectedUserCompetencyScope);
-    $canManageRolePermissions = (bool) ($canManageRolePermissions ?? false);
   @endphp
 
   <section
@@ -110,13 +106,6 @@
       >
         <img src="{{ asset('images/icon-pack/lucide/icons/users.svg') }}" alt="" class="users-page-nav-icon">
         Administrer medarbejdere
-      </a>
-      <a
-        href="{{ $usersViewUrl('permissions') }}"
-        class="users-page-nav-link users-page-nav-link-permissions{{ $activeUsersView === 'permissions' ? ' is-active' : '' }}"
-      >
-        <img src="{{ asset('images/icon-pack/lucide/icons/shield.svg') }}" alt="" class="users-page-nav-icon">
-        Adgangsniveau
       </a>
       <a
         href="{{ $usersViewUrl('competencies') }}"
@@ -145,17 +134,11 @@
           <span class="users-page-nav-badge">Slået fra</span>
         </span>
       @endif
-      <a
-        href="{{ $usersViewUrl('activity') }}"
-        class="users-page-nav-link users-page-nav-link-activity{{ $activeUsersView === 'activity' ? ' is-active' : '' }}"
-      >
-        <img src="{{ asset('images/icon-pack/lucide/icons/activity.svg') }}" alt="" class="users-page-nav-icon">
-        Aktivitets log
-      </a>
     </nav>
 
     <div class="users-layout">
-      <div class="users-card" id="users-create-section" data-users-panel="create" @if($activeUsersView !== 'create') hidden @endif>
+      @if ($activeUsersView === 'create')
+      <div class="users-card" id="users-create-section" data-users-panel="create">
         <div class="users-section-head">
           <div>
             <p class="users-eyebrow">Brugerstyring</p>
@@ -260,7 +243,7 @@
           </section>
 
           <section
-            class="users-form-section{{ $activeUsersView === 'permissions' ? ' is-focused' : '' }}"
+            class="users-form-section"
             id="users-permissions-section"
             data-users-permissions-anchor
             aria-labelledby="users-create-permissions-heading"
@@ -319,7 +302,8 @@
         </form>
       </div>
 
-      <div class="users-card" id="users-manage-section" data-users-panel="manage" @if($activeUsersView !== 'manage') hidden @endif>
+      @elseif ($activeUsersView === 'manage')
+      <div class="users-card" id="users-manage-section" data-users-panel="manage">
         <div class="users-section-head compact">
           <div class="users-section-head-copy">
             <p class="users-eyebrow">Oversigt</p>
@@ -432,93 +416,8 @@
         </div>
       </div>
 
-      <div class="users-card" id="users-role-permissions-section" data-users-panel="permissions" @if($activeUsersView !== 'permissions') hidden @endif>
-        <div class="users-section-head">
-          <div>
-            <p class="users-eyebrow">Adgangsniveau</p>
-            <h2>Adgangsrettigheder pr. rolle</h2>
-          </div>
-          <p class="users-text">
-            Her styrer du hvilke roller der har adgang til de enkelte områder i systemet.
-          </p>
-        </div>
-
-        @if (session('status'))
-          <div class="users-alert users-alert-success" role="status">
-            {{ session('status') }}
-          </div>
-        @endif
-
-        @if ($errors->has('permissions') || $errors->has('permissions_update'))
-          <div class="users-alert" role="alert">
-            {{ $errors->first('permissions') ?: $errors->first('permissions_update') }}
-          </div>
-        @endif
-
-        @if (! $canManageRolePermissions)
-          <div class="users-permissions-lock" role="status">
-            <strong>Ingen adgang</strong>
-            <p>Din rolle har ikke adgang til at redigere rolle-rettigheder.</p>
-          </div>
-        @else
-          <form class="users-permissions-form" method="POST" action="{{ route('users.permissions.update') }}">
-            @csrf
-            @method('PATCH')
-
-            <div class="users-permissions-table-wrap">
-              <table class="users-permissions-table">
-                <thead>
-                  <tr>
-                    <th scope="col">Område</th>
-                    @foreach ($permissionRoleOptions as $roleValue => $roleLabel)
-                      <th scope="col">{{ $roleLabel }}</th>
-                    @endforeach
-                  </tr>
-                </thead>
-                <tbody>
-                  @foreach ($permissionDefinitions as $permissionKey => $meta)
-                    <tr>
-                      <th scope="row">
-                        <div class="users-permissions-cell-copy">
-                          <strong>{{ $meta['label'] ?? $permissionKey }}</strong>
-                          @if (filled($meta['description'] ?? null))
-                            <span>{{ $meta['description'] }}</span>
-                          @endif
-                        </div>
-                      </th>
-
-                      @foreach ($permissionRoleOptions as $roleValue => $roleLabel)
-                        @php
-                          $checkboxName = 'permissions[' . $roleValue . '][' . $permissionKey . ']';
-                          $isAllowed = (bool) ($permissionMatrix[$roleValue][$permissionKey] ?? false);
-                        @endphp
-                        <td>
-                          <label class="users-permissions-toggle{{ ! $isAllowed ? ' is-off' : '' }}">
-                            <input type="hidden" name="{{ $checkboxName }}" value="1">
-                            <input
-                              type="checkbox"
-                              name="{{ $checkboxName }}"
-                              value="0"
-                              @checked(! $isAllowed)
-                            >
-                            <span data-permission-toggle-state>{{ $isAllowed ? 'Til' : 'Fra' }}</span>
-                          </label>
-                        </td>
-                      @endforeach
-                    </tr>
-                  @endforeach
-                </tbody>
-              </table>
-            </div>
-
-            <div class="users-permissions-actions">
-              <button type="submit" class="users-button">Gem rettigheder</button>
-            </div>
-          </form>
-        @endif
-      </div>
-
-      <div class="users-card" id="users-competencies-section" data-users-panel="competencies" @if($activeUsersView !== 'competencies') hidden @endif>
+      @elseif ($activeUsersView === 'competencies')
+      <div class="users-card" id="users-competencies-section" data-users-panel="competencies">
         <div class="users-section-head">
           <div>
             <p class="users-eyebrow">Kompetencer</p>
@@ -654,8 +553,8 @@
         @endif
       </div>
 
-      @if ($workShiftsEnabled)
-      <div class="users-card" id="users-workhours-section" data-users-panel="workhours" @if($activeUsersView !== 'workhours') hidden @endif>
+      @elseif ($activeUsersView === 'workhours' && $workShiftsEnabled)
+      <div class="users-card" id="users-workhours-section" data-users-panel="workhours">
         @php
           $shiftWeekDays = ['Man', 'Tir', 'Ons', 'Tor', 'Fre', 'Lør', 'Søn'];
           $shiftWeekDaysWithDates = collect($shiftWeekDays)
@@ -928,33 +827,6 @@
         </dialog>
       </div>
       @endif
-
-      <div class="users-card" id="users-activity-section" data-users-panel="activity" @if($activeUsersView !== 'activity') hidden @endif>
-        <div class="users-section-head">
-          <div>
-            <p class="users-eyebrow">Aktivitet</p>
-            <h2>Status og historik</h2>
-          </div>
-          <p class="users-text">
-            Et simpelt overblik over medarbejderstatus. Her kan du hurtigt se hvem der er aktive og klar til booking.
-          </p>
-        </div>
-
-        <div class="users-module-grid">
-          @foreach ($users as $user)
-            <article class="users-module-item">
-              <div class="users-module-item-head">
-                <strong>{{ $user->name }}</strong>
-                <span class="users-module-tag{{ $user->is_active ? '' : ' is-inactive' }}">
-                  {{ $user->is_active ? 'Aktiv' : 'Inaktiv' }}
-                </span>
-              </div>
-              <p>Rolle: {{ $user->roleLabel() }}</p>
-              <small>Bookbar: {{ $user->is_bookable ? 'Ja' : 'Nej' }}</small>
-            </article>
-          @endforeach
-        </div>
-      </div>
     </div>
 
     @if ($users->isNotEmpty())
