@@ -412,16 +412,18 @@
 }
 
 @media (max-width: 980px) {
-  .my-shifts-page,
-  .my-shifts-layout {
-    height: auto;
-    min-height: auto;
+  .my-shifts-body .my-shifts-page,
+  .my-shifts-body .my-shifts-layout,
+  .my-shifts-body .my-shifts-card {
+    height: 100%;
+    min-height: 0;
+  }
+
+  .my-shifts-body .main-content {
+    overflow: hidden;
   }
 
   .my-shifts-card {
-    height: auto;
-    max-height: none;
-    overflow: visible;
     padding: 16px;
   }
 
@@ -430,7 +432,10 @@
   }
 
   .my-shifts-list-scroll {
-    overflow: visible;
-    max-height: none;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-gutter: stable;
   }
 }

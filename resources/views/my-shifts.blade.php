@@ -2,7 +2,7 @@
 
 @section('title', 'Mine vagter')
 
-@section('body-class', 'booking-home-body')
+@section('body-class', 'booking-home-body my-shifts-body')
 
 @section('header')
   @include('layouts.header-public')
