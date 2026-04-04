@@ -1,9 +1,11 @@
 <?php
 
+$secureDefaultsEnabled = ! in_array((string) env('APP_ENV', 'production'), ['local', 'testing'], true);
+
 return [
     'auth' => [
-        // Temporarily disable in environments where mail delivery is not configured.
-        'require_verified_email' => (bool) env('AUTH_REQUIRE_VERIFIED_EMAIL', false),
+        // Default to verified-email logins outside local/testing.
+        'require_verified_email' => (bool) env('AUTH_REQUIRE_VERIFIED_EMAIL', $secureDefaultsEnabled),
         // Optional dedicated host for the employee login, e.g. "login.platebook.dk".
         'login_domain' => env('AUTH_LOGIN_DOMAIN'),
     ],
@@ -34,15 +36,14 @@ return [
     ],
 
     'password' => [
-        // If true, passwords are checked against known leaked-password data.
-        // Keep false in local/dev if you want faster validation without external checks.
-        'require_uncompromised' => (bool) env('PASSWORD_REQUIRE_UNCOMPROMISED', false),
+        // Check passwords against known leaked-password data outside local/testing by default.
+        'require_uncompromised' => (bool) env('PASSWORD_REQUIRE_UNCOMPROMISED', $secureDefaultsEnabled),
     ],
 
     'headers' => [
         'enabled' => (bool) env('SECURITY_HEADERS_ENABLED', true),
-        // Enable HSTS only when the app is running behind HTTPS in production.
-        'hsts' => (bool) env('SECURITY_HSTS_ENABLED', false),
+        // HSTS is only emitted on secure requests, so it is safe to default it on outside local/testing.
+        'hsts' => (bool) env('SECURITY_HSTS_ENABLED', $secureDefaultsEnabled),
         'csp' => [
             'enabled' => (bool) env('SECURITY_CSP_ENABLED', true),
         ],

@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use App\Support\RouteUrls;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 class AddSecurityHeaders
@@ -41,6 +42,16 @@ class AddSecurityHeaders
 
         if ((bool) config('security.headers.hsts', false) && $request->isSecure()) {
             $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+        }
+
+        if ($this->shouldDisableCaching($request)) {
+            $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate, private, max-age=0');
+            $response->headers->set('Pragma', 'no-cache');
+            $response->headers->set('Expires', '0');
+            $response->headers->set('Vary', $this->appendVaryHeader(
+                (string) $response->headers->get('Vary', ''),
+                'Cookie'
+            ));
         }
 
         return $response;
@@ -134,5 +145,34 @@ class AddSecurityHeaders
         return $ancestors !== []
             ? $ancestors
             : ["'self'"];
+    }
+
+    private function shouldDisableCaching(Request $request): bool
+    {
+        if (
+            $request->routeIs('auth.state', 'csrf.token', 'platform.*', 'login', 'login.store', 'verification.*')
+            || ($request->routeIs('public-booking.*') && $request->boolean('preview'))
+        ) {
+            return true;
+        }
+
+        return Auth::guard('web')->check() || Auth::guard('platform')->check();
+    }
+
+    private function appendVaryHeader(string $currentValue, string $value): string
+    {
+        $existingValues = collect(explode(',', $currentValue))
+            ->map(static fn (string $item): string => trim($item))
+            ->filter(static fn (string $item): bool => $item !== '')
+            ->values()
+            ->all();
+
+        $normalizedExistingValues = array_map('mb_strtolower', $existingValues);
+
+        if (! in_array(mb_strtolower($value), $normalizedExistingValues, true)) {
+            $existingValues[] = $value;
+        }
+
+        return implode(', ', $existingValues);
     }
 }

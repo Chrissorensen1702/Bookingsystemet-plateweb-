@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BrandingSettingsController;
+use App\Models\ActivityEvent;
 use App\Models\Location;
 use App\Models\Tenant;
 use App\Models\User;
@@ -160,7 +161,7 @@ test('permissions settings view renders the role permissions matrix', function (
     expect($html)->toContain('Gem rettigheder');
 });
 
-test('activity settings view renders the employee status overview', function () {
+test('activity settings view renders the console style activity log', function () {
     $tenant = Tenant::query()->create([
         'name' => 'Chris Virksomhed',
         'slug' => 'chris-virksomhed',
@@ -184,12 +185,21 @@ test('activity settings view renders the employee status overview', function () 
         'is_active' => true,
     ]);
 
-    User::factory()->create([
+    ActivityEvent::query()->create([
         'tenant_id' => $tenant->id,
-        'name' => 'Andreas Blæsbjerg',
-        'role' => User::ROLE_STAFF,
-        'is_bookable' => true,
-        'is_active' => true,
+        'location_id' => $location->id,
+        'actor_user_id' => $owner->id,
+        'category' => 'bookings',
+        'event_key' => 'booking.created',
+        'subject_type' => 'booking',
+        'subject_id' => 12,
+        'message' => 'Chris Soerensen oprettede booking for Emma Hansen.',
+        'metadata' => [
+            'context' => [
+                ['label' => 'Ydelse', 'value' => 'Klipning'],
+                ['label' => 'Tidspunkt', 'value' => '04.04.2026 09:00 - 09:45'],
+            ],
+        ],
     ]);
 
     $request = Request::create('/indstillinger', 'GET', [
@@ -205,7 +215,8 @@ test('activity settings view renders the employee status overview', function () 
     $view = app(BrandingSettingsController::class)->index($request);
     $html = $view->render();
 
-    expect($html)->toContain('Status og historik');
-    expect($html)->toContain('Andreas Blæsbjerg');
-    expect($html)->toContain('Bookbar: Ja');
+    expect($html)->toContain('Aktivitets log');
+    expect($html)->toContain('Chris Soerensen oprettede booking for Emma Hansen.');
+    expect($html)->toContain('Se detaljer');
+    expect($html)->toContain('Bookinger');
 });

@@ -630,6 +630,265 @@
   font-size: 12px;
 }
 
+.settings-activity-head {
+  gap: 10px;
+}
+
+.settings-activity-console {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid rgb(15 23 42 / 0.9);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at top right, rgb(var(--color-primary-rgb) / 0.14), transparent 34%),
+    linear-gradient(180deg, rgb(15 23 42 / 0.98) 0%, rgb(2 6 23 / 1) 100%);
+  color: rgb(226 232 240 / 1);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04);
+}
+
+.settings-activity-console__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.settings-activity-console__filters {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.settings-activity-filter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 0 14px;
+  border: 1px solid rgb(148 163 184 / 0.2);
+  border-radius: 999px;
+  background: rgb(15 23 42 / 0.72);
+  color: rgb(203 213 225 / 0.92);
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  transition: border-color 0.16s ease, background-color 0.16s ease, color 0.16s ease;
+}
+
+.settings-activity-filter:hover,
+.settings-activity-filter:focus-visible,
+.settings-activity-filter.is-active {
+  border-color: rgb(var(--color-primary-rgb) / 0.7);
+  background: rgb(var(--color-primary-rgb) / 0.18);
+  color: rgb(255 255 255 / 1);
+}
+
+.settings-activity-console__meta {
+  margin: 0;
+  font-size: 12px;
+  color: rgb(148 163 184 / 0.9);
+}
+
+.settings-activity-empty {
+  display: grid;
+  gap: 6px;
+  padding: 18px;
+  border: 1px dashed rgb(148 163 184 / 0.26);
+  border-radius: 14px;
+  background: rgb(15 23 42 / 0.35);
+}
+
+.settings-activity-empty strong {
+  font-size: 14px;
+  color: rgb(248 250 252 / 1);
+}
+
+.settings-activity-empty span {
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgb(148 163 184 / 0.92);
+}
+
+.settings-activity-stream {
+  display: grid;
+  gap: 14px;
+}
+
+.settings-activity-entry {
+  position: relative;
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr);
+  gap: 14px;
+  padding: 16px 18px;
+  border: 1px solid rgb(148 163 184 / 0.12);
+  border-radius: 16px;
+  background: rgb(15 23 42 / 0.48);
+}
+
+.settings-activity-entry__rail {
+  width: 4px;
+  border-radius: 999px;
+  background: rgb(148 163 184 / 0.58);
+}
+
+.settings-activity-entry--bookings .settings-activity-entry__rail {
+  background: rgb(96 165 250 / 1);
+}
+
+.settings-activity-entry--users .settings-activity-entry__rail {
+  background: rgb(168 85 247 / 1);
+}
+
+.settings-activity-entry--services .settings-activity-entry__rail {
+  background: rgb(52 211 153 / 1);
+}
+
+.settings-activity-entry--settings .settings-activity-entry__rail {
+  background: rgb(251 191 36 / 1);
+}
+
+.settings-activity-entry__body {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.settings-activity-entry__meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 11px;
+  color: rgb(148 163 184 / 0.92);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.settings-activity-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 22px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: rgb(248 250 252 / 1);
+}
+
+.settings-activity-badge--bookings {
+  background: rgb(59 130 246 / 0.22);
+}
+
+.settings-activity-badge--users {
+  background: rgb(147 51 234 / 0.24);
+}
+
+.settings-activity-badge--services {
+  background: rgb(16 185 129 / 0.22);
+}
+
+.settings-activity-badge--settings {
+  background: rgb(234 179 8 / 0.24);
+}
+
+.settings-activity-entry__message {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: rgb(248 250 252 / 1);
+}
+
+.settings-activity-entry__details {
+  display: grid;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.settings-activity-entry__details summary {
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgb(191 219 254 / 1);
+}
+
+.settings-activity-context {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+
+.settings-activity-context__item {
+  display: grid;
+  gap: 3px;
+}
+
+.settings-activity-context__item dt {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgb(148 163 184 / 0.92);
+}
+
+.settings-activity-context__item dd {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgb(226 232 240 / 1);
+}
+
+.settings-activity-changes {
+  display: grid;
+  gap: 10px;
+}
+
+.settings-activity-change {
+  display: grid;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid rgb(148 163 184 / 0.14);
+  border-radius: 12px;
+  background: rgb(2 6 23 / 0.35);
+}
+
+.settings-activity-change__label {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgb(251 191 36 / 0.96);
+}
+
+.settings-activity-change__values {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.settings-activity-change__values span {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 11px;
+  color: rgb(148 163 184 / 0.92);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.settings-activity-change__values strong {
+  display: block;
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgb(248 250 252 / 1);
+  font-weight: 600;
+}
+
 @media (max-width: 1080px) {
   .settings-layout {
     grid-template-columns: 1fr;

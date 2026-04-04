@@ -5,6 +5,9 @@ use Illuminate\Support\Str;
 $sessionCookieBase = Str::slug((string) env('APP_NAME', 'laravel')).'-session';
 $sessionCookieVersion = trim((string) env('SESSION_COOKIE_VERSION', 'v2'));
 $sessionCookieName = $sessionCookieBase;
+$secureDefaultsEnabled = ! in_array((string) env('APP_ENV', 'production'), ['local', 'testing'], true);
+$appUrlScheme = strtolower((string) (parse_url((string) env('APP_URL', ''), PHP_URL_SCHEME) ?: ''));
+$sessionSecureCookieDefault = $secureDefaultsEnabled || $appUrlScheme === 'https';
 
 if ($sessionCookieVersion !== '') {
     $sessionCookieName .= '-'.$sessionCookieVersion;
@@ -55,7 +58,7 @@ return [
     |
     */
 
-    'encrypt' => env('SESSION_ENCRYPT', false),
+    'encrypt' => env('SESSION_ENCRYPT', $secureDefaultsEnabled),
 
     /*
     |--------------------------------------------------------------------------
@@ -177,7 +180,7 @@ return [
     |
     */
 
-    'secure' => env('SESSION_SECURE_COOKIE'),
+    'secure' => env('SESSION_SECURE_COOKIE', $sessionSecureCookieDefault),
 
     /*
     |--------------------------------------------------------------------------

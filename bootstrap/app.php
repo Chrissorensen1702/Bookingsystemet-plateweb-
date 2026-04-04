@@ -19,6 +19,11 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->trustHosts(
+            at: static fn (): array => RouteUrls::trustedHostPatterns(),
+            subdomains: false,
+        );
+
         $trustedProxies = array_values(array_filter(array_map(
             static fn (string $value): string => trim($value),
             explode(',', (string) env('TRUSTED_PROXIES', ''))

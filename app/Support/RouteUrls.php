@@ -121,6 +121,28 @@ class RouteUrls
     /**
      * @return list<string>
      */
+    public static function trustedHostPatterns(): array
+    {
+        $appHost = mb_strtolower(trim(self::appHost()));
+        $loginHost = mb_strtolower(trim(self::loginHost()));
+        $publicRootDomain = mb_strtolower(trim(self::publicRootDomain()));
+
+        $patterns = collect([$appHost, $loginHost, $publicRootDomain])
+            ->filter(static fn (string $host): bool => $host !== '')
+            ->map(static fn (string $host): string => '^'.preg_quote($host).'$')
+            ->values()
+            ->all();
+
+        if ($publicRootDomain !== '') {
+            $patterns[] = '^(.+\\.)?'.preg_quote($publicRootDomain).'$';
+        }
+
+        return array_values(array_unique($patterns));
+    }
+
+    /**
+     * @return list<string>
+     */
     public static function reservedPublicSubdomains(): array
     {
         return collect(Arr::wrap(config('security.domains.reserved_public_subdomains', [])))

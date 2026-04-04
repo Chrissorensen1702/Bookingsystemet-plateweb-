@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Service;
 use App\Models\ServiceCategory;
 use App\Models\Tenant;
+use App\Models\User;
+use App\Support\ActivityLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -62,40 +64,73 @@ class ServiceManagementController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, ?ActivityLogger $activityLogger = null): RedirectResponse
     {
+        $activityLogger ??= app(ActivityLogger::class);
         $tenantId = $this->resolveTenantId($request);
         abort_if($tenantId <= 0, 500, 'Ingen aktiv tenant er konfigureret.');
+        /** @var User $actor */
+        $actor = $request->user();
         $locationIds = $this->resolveAccessibleLocationIds($request, $tenantId);
 
         $payload = $this->validatePayload($request, $tenantId, $locationIds);
         $payload['tenant_id'] = $tenantId;
         $requestedSortOrder = max(1, (int) ($payload['sort_order'] ?? 1));
+        $serviceId = 0;
 
         DB::transaction(function () use (
             $payload,
             $tenantId,
             $requestedSortOrder,
             $request,
-            $locationIds
+            $locationIds,
+            &$serviceId
         ): void {
             $service = Service::query()->create($payload);
+            $serviceId = (int) $service->id;
             $this->syncServiceLocationAssignments($request, $service, $locationIds);
             $this->reorderGlobalServices($tenantId, (int) $service->id, $requestedSortOrder);
             $this->applyRequestedLocalSortOrders($request, $tenantId, $service, $locationIds);
         });
+
+        if ($serviceId > 0) {
+            $createdService = Service::query()
+                ->with(['category:id,name', 'locations:id,name'])
+                ->find($serviceId);
+
+            if ($createdService instanceof Service) {
+                $activityLogger->logServiceCreated(
+                    $actor,
+                    $createdService,
+                    $createdService->locations
+                        ->filter(static fn ($location): bool => (bool) ($location->pivot?->is_active ?? false))
+                        ->pluck('name')
+                        ->all()
+                );
+            }
+        }
 
         return redirect()
             ->route('services.index')
             ->with('status', 'Ydelsen er oprettet.');
     }
 
-    public function update(Request $request, Service $service): RedirectResponse
+    public function update(Request $request, Service $service, ?ActivityLogger $activityLogger = null): RedirectResponse
     {
+        $activityLogger ??= app(ActivityLogger::class);
         $tenantId = $this->resolveTenantId($request);
         abort_if($tenantId <= 0, 500, 'Ingen aktiv tenant er konfigureret.');
         abort_if((int) $service->tenant_id !== $tenantId, 404);
+        /** @var User $actor */
+        $actor = $request->user();
         $locationIds = $this->resolveAccessibleLocationIds($request, $tenantId);
+        $beforeSnapshot = $activityLogger->serviceSnapshot(
+            $service->loadMissing(['category:id,name', 'locations:id,name']),
+            $service->locations
+                ->filter(static fn ($location): bool => (bool) ($location->pivot?->is_active ?? false))
+                ->pluck('name')
+                ->all()
+        );
 
         $payload = $this->validatePayload($request, $tenantId, $locationIds, $service);
         $requestedSortOrder = max(1, (int) ($payload['sort_order'] ?? $service->sort_order));
@@ -114,16 +149,30 @@ class ServiceManagementController extends Controller
             $this->applyRequestedLocalSortOrders($request, $tenantId, $service, $locationIds);
         });
 
+        $refreshedService = $service->fresh()->load(['category:id,name', 'locations:id,name']);
+        $activityLogger->logServiceUpdated(
+            $actor,
+            $refreshedService,
+            $beforeSnapshot,
+            $refreshedService->locations
+                ->filter(static fn ($location): bool => (bool) ($location->pivot?->is_active ?? false))
+                ->pluck('name')
+                ->all()
+        );
+
         return redirect()
             ->route('services.index')
             ->with('status', 'Ydelsen er opdateret.');
     }
 
-    public function toggleActive(Request $request, Service $service): RedirectResponse
+    public function toggleActive(Request $request, Service $service, ?ActivityLogger $activityLogger = null): RedirectResponse
     {
+        $activityLogger ??= app(ActivityLogger::class);
         $tenantId = $this->resolveTenantId($request);
         abort_if($tenantId <= 0, 500, 'Ingen aktiv tenant er konfigureret.');
         abort_if((int) $service->tenant_id !== $tenantId, 404);
+        /** @var User $actor */
+        $actor = $request->user();
 
         $locationIds = $this->resolveAccessibleLocationIds($request, $tenantId);
 
@@ -148,6 +197,16 @@ class ServiceManagementController extends Controller
         }
 
         $service->locations()->syncWithoutDetaching($syncPayload);
+        $activityLogger->logServiceActiveToggle(
+            $actor,
+            $service->fresh()->load('locations:id,name'),
+            $nextState,
+            $service->locations()
+                ->wherePivot('is_active', true)
+                ->orderBy('locations.name')
+                ->pluck('locations.name')
+                ->all()
+        );
 
         return redirect()
             ->route('services.index')
@@ -156,16 +215,20 @@ class ServiceManagementController extends Controller
                 : 'Ydelsen er slået fra på alle lokationer.');
     }
 
-    public function toggleOnlineBookable(Request $request, Service $service): RedirectResponse
+    public function toggleOnlineBookable(Request $request, Service $service, ?ActivityLogger $activityLogger = null): RedirectResponse
     {
+        $activityLogger ??= app(ActivityLogger::class);
         $tenantId = $this->resolveTenantId($request);
         abort_if($tenantId <= 0, 500, 'Ingen aktiv tenant er konfigureret.');
         abort_if((int) $service->tenant_id !== $tenantId, 404);
+        /** @var User $actor */
+        $actor = $request->user();
 
         $nextState = ! (bool) $service->is_online_bookable;
         $service->update([
             'is_online_bookable' => $nextState,
         ]);
+        $activityLogger->logServiceOnlineToggle($actor, $service->fresh()->load('category:id,name'), $nextState);
 
         return redirect()
             ->route('services.index')
@@ -174,27 +237,41 @@ class ServiceManagementController extends Controller
                 : 'Ydelsen er fjernet fra online booking.');
     }
 
-    public function destroy(Request $request, Service $service): RedirectResponse
+    public function destroy(Request $request, Service $service, ?ActivityLogger $activityLogger = null): RedirectResponse
     {
+        $activityLogger ??= app(ActivityLogger::class);
         $tenantId = $this->resolveTenantId($request);
         abort_if($tenantId <= 0, 500, 'Ingen aktiv tenant er konfigureret.');
         abort_if((int) $service->tenant_id !== $tenantId, 404);
+        /** @var User $actor */
+        $actor = $request->user();
 
         if ($service->bookings()->exists()) {
             return $this->redirectToEditService($request, $service, 'Ydelser med eksisterende bookinger kan ikke slettes.');
         }
 
+        $beforeSnapshot = $activityLogger->serviceSnapshot(
+            $service->loadMissing(['category:id,name', 'locations:id,name']),
+            $service->locations
+                ->filter(static fn ($location): bool => (bool) ($location->pivot?->is_active ?? false))
+                ->pluck('name')
+                ->all()
+        );
         $service->delete();
+        $activityLogger->logServiceDeleted($actor, $tenantId, $beforeSnapshot, (int) $service->id);
 
         return redirect()
             ->route('services.index')
             ->with('status', 'Ydelsen er slettet.');
     }
 
-    public function storeCategory(Request $request): RedirectResponse
+    public function storeCategory(Request $request, ?ActivityLogger $activityLogger = null): RedirectResponse
     {
+        $activityLogger ??= app(ActivityLogger::class);
         $tenantId = $this->resolveTenantId($request);
         abort_if($tenantId <= 0, 500, 'Ingen aktiv tenant er konfigureret.');
+        /** @var User $actor */
+        $actor = $request->user();
 
         $validated = $request->validate([
             'form_scope' => ['nullable', 'string'],
@@ -213,7 +290,7 @@ class ServiceManagementController extends Controller
             ->where('tenant_id', $tenantId)
             ->max('sort_order')) + 1;
 
-        ServiceCategory::query()->create([
+        $serviceCategory = ServiceCategory::query()->create([
             'tenant_id' => $tenantId,
             'name' => trim((string) $validated['category_name']),
             'description' => filled($validated['category_description'] ?? null)
@@ -224,17 +301,26 @@ class ServiceManagementController extends Controller
                 : max(0, $nextSortOrder),
             'is_active' => true,
         ]);
+        $activityLogger->logServiceCategoryCreated($actor, $serviceCategory);
 
         return redirect()
             ->route('services.index')
             ->with('status', 'Kategorien er oprettet.');
     }
 
-    public function updateCategory(Request $request, ServiceCategory $serviceCategory): RedirectResponse
+    public function updateCategory(
+        Request $request,
+        ServiceCategory $serviceCategory,
+        ?ActivityLogger $activityLogger = null
+    ): RedirectResponse
     {
+        $activityLogger ??= app(ActivityLogger::class);
         $tenantId = $this->resolveTenantId($request);
         abort_if($tenantId <= 0, 500, 'Ingen aktiv tenant er konfigureret.');
         abort_if((int) $serviceCategory->tenant_id !== $tenantId, 404);
+        /** @var User $actor */
+        $actor = $request->user();
+        $beforeSnapshot = $activityLogger->serviceCategorySnapshot($serviceCategory);
 
         $validated = $request->validate([
             'form_scope' => ['nullable', 'string'],
@@ -260,17 +346,25 @@ class ServiceManagementController extends Controller
                 ? max(0, (int) $validated['category_sort_order'])
                 : (int) $serviceCategory->sort_order,
         ]);
+        $activityLogger->logServiceCategoryUpdated($actor, $serviceCategory->fresh(), $beforeSnapshot);
 
         return redirect()
             ->route('services.index')
             ->with('status', 'Kategorien er opdateret.');
     }
 
-    public function destroyCategory(Request $request, ServiceCategory $serviceCategory): RedirectResponse
+    public function destroyCategory(
+        Request $request,
+        ServiceCategory $serviceCategory,
+        ?ActivityLogger $activityLogger = null
+    ): RedirectResponse
     {
+        $activityLogger ??= app(ActivityLogger::class);
         $tenantId = $this->resolveTenantId($request);
         abort_if($tenantId <= 0, 500, 'Ingen aktiv tenant er konfigureret.');
         abort_if((int) $serviceCategory->tenant_id !== $tenantId, 404);
+        /** @var User $actor */
+        $actor = $request->user();
 
         if ($serviceCategory->services()->exists()) {
             return redirect()
@@ -284,7 +378,9 @@ class ServiceManagementController extends Controller
                 ]);
         }
 
+        $beforeSnapshot = $activityLogger->serviceCategorySnapshot($serviceCategory);
         $serviceCategory->delete();
+        $activityLogger->logServiceCategoryDeleted($actor, $tenantId, $beforeSnapshot, (int) $serviceCategory->id);
 
         return redirect()
             ->route('services.index')

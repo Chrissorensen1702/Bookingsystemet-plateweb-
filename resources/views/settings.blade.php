@@ -25,7 +25,10 @@
     $permissionDefinitions = is_array($permissionDefinitions ?? null) ? $permissionDefinitions : [];
     $permissionRoleOptions = is_array($permissionRoleOptions ?? null) ? $permissionRoleOptions : [];
     $permissionMatrix = is_array($permissionMatrix ?? null) ? $permissionMatrix : [];
-    $activityUsers = $activityUsers ?? collect();
+    $activityScope = in_array((string) ($activityScope ?? 'all'), ['all', 'bookings', 'users', 'services', 'settings'], true)
+      ? (string) ($activityScope ?? 'all')
+      : 'all';
+    $activityEvents = $activityEvents ?? collect();
     $globalSettingsError = $errors->first('settings');
     $firstPageError = collect($errors->keys())
       ->reject(static fn (string $key): bool => $key === 'settings')
@@ -382,7 +385,7 @@
 
                 <div class="settings-grid settings-grid-two settings-grid-tight">
                   <label class="settings-field settings-field-upload">
-                    <input type="file" name="public_logo_file" accept=".svg,.png,.webp,.jpg,.jpeg" @disabled(! $canManageGlobal)>
+                    <input type="file" name="public_logo_file" accept=".png,.webp,.jpg,.jpeg" @disabled(! $canManageGlobal)>
                   </label>
 
                   <label class="settings-check settings-check-inline settings-check-remove">

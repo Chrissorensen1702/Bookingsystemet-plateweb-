@@ -8,6 +8,7 @@ use App\Models\Location;
 use App\Models\Service;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Support\ActivityLogger;
 use App\Support\BookingSlotManager;
 use App\Support\BookingSmsNotifier;
 use App\Support\LocationAvailability;
@@ -28,12 +29,16 @@ class BookingManagementController extends Controller
         LocationAvailability $availability,
         BookingSlotManager $slotManager,
         WorkShiftAvailability $shiftAvailability,
-        BookingSmsNotifier $smsNotifier
+        BookingSmsNotifier $smsNotifier,
+        ?ActivityLogger $activityLogger = null
     ): RedirectResponse
     {
+        $activityLogger ??= app(ActivityLogger::class);
         $tenantId = $this->resolveTenantId($request);
         abort_if($tenantId <= 0, 500, 'Ingen aktiv tenant er konfigureret.');
         $workShiftsEnabled = $this->isWorkShiftsEnabledForTenant($tenantId);
+        /** @var User $actor */
+        $actor = $request->user();
 
         $validated = $request->validate([
             'create_location_id' => [
@@ -244,6 +249,8 @@ class BookingManagementController extends Controller
             report($exception);
         }
 
+        $activityLogger->logBookingCreated($actor, $booking->fresh());
+
         return redirect()
             ->route('booking-calender', $this->calendarQueryFromRequest($request, [
                 'location_id' => $locationId,
@@ -257,14 +264,18 @@ class BookingManagementController extends Controller
         Booking $booking,
         LocationAvailability $availability,
         BookingSlotManager $slotManager,
-        WorkShiftAvailability $shiftAvailability
+        WorkShiftAvailability $shiftAvailability,
+        ?ActivityLogger $activityLogger = null
     ): RedirectResponse
     {
+        $activityLogger ??= app(ActivityLogger::class);
         $tenantId = $this->resolveTenantId($request);
         abort_if($tenantId <= 0, 500, 'Ingen aktiv tenant er konfigureret.');
         $workShiftsEnabled = $this->isWorkShiftsEnabledForTenant($tenantId);
         abort_if((int) $booking->tenant_id !== $tenantId, 404);
         abort_if(! $this->canAccessLocation($request, $tenantId, (int) $booking->location_id), 404);
+        /** @var User $actor */
+        $actor = $request->user();
 
         if (! $booking->isConfirmed()) {
             return redirect()
@@ -273,6 +284,7 @@ class BookingManagementController extends Controller
         }
 
         $booking->loadMissing('location:id,timezone');
+        $beforeSnapshot = $activityLogger->bookingSnapshot($booking);
         $durationMinutes = max(15, (int) $booking->starts_at->diffInMinutes($booking->ends_at));
         $bufferBeforeMinutes = max(0, (int) ($booking->buffer_before_minutes ?? 0));
         $bufferAfterMinutes = max(0, (int) ($booking->buffer_after_minutes ?? 0));
@@ -396,17 +408,27 @@ class BookingManagementController extends Controller
             $this->syncBookingSlots($slotManager, $booking->refresh(), 'booking_time');
         });
 
+        $activityLogger->logBookingUpdated($actor, $booking->fresh(), $beforeSnapshot);
+
         return redirect()
             ->back()
             ->with('status', 'Bookingen er opdateret.');
     }
 
-    public function cancel(Request $request, Booking $booking, BookingSlotManager $slotManager): RedirectResponse
+    public function cancel(
+        Request $request,
+        Booking $booking,
+        BookingSlotManager $slotManager,
+        ?ActivityLogger $activityLogger = null
+    ): RedirectResponse
     {
+        $activityLogger ??= app(ActivityLogger::class);
         $tenantId = $this->resolveTenantId($request);
         abort_if($tenantId <= 0, 500, 'Ingen aktiv tenant er konfigureret.');
         abort_if((int) $booking->tenant_id !== $tenantId, 404);
         abort_if(! $this->canAccessLocation($request, $tenantId, (int) $booking->location_id), 404);
+        /** @var User $actor */
+        $actor = $request->user();
 
         if ($booking->isCanceled()) {
             $slotManager->clearSlotsForBooking((int) $booking->id);
@@ -426,17 +448,26 @@ class BookingManagementController extends Controller
             $slotManager->clearSlotsForBooking((int) $booking->id);
         });
 
+        $activityLogger->logBookingCanceled($actor, $booking->fresh());
+
         return redirect()
             ->back()
             ->with('status', 'Bookingen er nu annulleret.');
     }
 
-    public function complete(Request $request, Booking $booking): RedirectResponse
+    public function complete(
+        Request $request,
+        Booking $booking,
+        ?ActivityLogger $activityLogger = null
+    ): RedirectResponse
     {
+        $activityLogger ??= app(ActivityLogger::class);
         $tenantId = $this->resolveTenantId($request);
         abort_if($tenantId <= 0, 500, 'Ingen aktiv tenant er konfigureret.');
         abort_if((int) $booking->tenant_id !== $tenantId, 404);
         abort_if(! $this->canAccessLocation($request, $tenantId, (int) $booking->location_id), 404);
+        /** @var User $actor */
+        $actor = $request->user();
 
         if ($booking->isCompleted()) {
             return redirect()
@@ -461,6 +492,8 @@ class BookingManagementController extends Controller
             'completed_at' => now(),
             'completed_by_user_id' => $request->user()?->id,
         ]);
+
+        $activityLogger->logBookingCompleted($actor, $booking->fresh());
 
         return redirect()
             ->back()

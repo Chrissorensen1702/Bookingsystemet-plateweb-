@@ -7,6 +7,7 @@ use App\Models\Service;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Models\UserWorkShift;
+use App\Support\ActivityLogger;
 use App\Support\TenantRolePermissionManager;
 use App\Support\UploadsStorage;
 use Carbon\CarbonImmutable;
@@ -261,8 +262,9 @@ class UserManagementController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, ?ActivityLogger $activityLogger = null): RedirectResponse
     {
+        $activityLogger ??= app(ActivityLogger::class);
         $tenantId = $this->resolveTenantId($request);
         abort_if($tenantId <= 0, 500, 'Ingen aktiv tenant er konfigureret.');
         /** @var User $actor */
@@ -308,6 +310,11 @@ class UserManagementController extends Controller
         }
 
         $this->ensureBookableUserLocationAssignments($user, $selectedLocationIds);
+        $activityLogger->logUserCreated(
+            $actor,
+            $user,
+            $user->locations()->orderBy('name')->pluck('name')->all()
+        );
 
         $statusMessage = 'Brugeren er oprettet. Bekræftelsesmail er sendt.';
 
@@ -323,8 +330,9 @@ class UserManagementController extends Controller
             ->with('status', $statusMessage);
     }
 
-    public function update(Request $request, User $user): RedirectResponse
+    public function update(Request $request, User $user, ?ActivityLogger $activityLogger = null): RedirectResponse
     {
+        $activityLogger ??= app(ActivityLogger::class);
         $tenantId = $this->resolveTenantId($request);
         abort_if($tenantId <= 0, 500, 'Ingen aktiv tenant er konfigureret.');
         abort_if((int) $user->tenant_id !== $tenantId, 404);
@@ -334,6 +342,10 @@ class UserManagementController extends Controller
         $allowedRoles = $this->allowedRoleValuesFor($actor);
         abort_if($allowedRoles === [], 403);
         $allowedLocationIds = $this->resolveAccessibleLocationIds($request, $tenantId);
+        $beforeSnapshot = $activityLogger->userSnapshot(
+            $user->loadMissing('locations:id,name'),
+            $user->locations->pluck('name')->all()
+        );
 
         if (! filled($request->input('password'))) {
             $request->merge([
@@ -376,6 +388,10 @@ class UserManagementController extends Controller
             unset($payload['password']);
         }
 
+        $normalizedEmail = mb_strtolower(trim((string) $payload['email']));
+        $emailChanged = $normalizedEmail !== mb_strtolower(trim((string) $user->email));
+        $payload['email'] = $normalizedEmail;
+
         $profilePhotoPath = UploadsStorage::normalizePath($user->profile_photo_path);
 
         if ((bool) ($payload['remove_profile_photo'] ?? false)) {
@@ -401,16 +417,42 @@ class UserManagementController extends Controller
         $payload['profile_photo_path'] = $profilePhotoPath !== null ? $profilePhotoPath : null;
         unset($payload['remove_profile_photo']);
 
-        $user->update($payload);
+        if ($emailChanged) {
+            $user->forceFill(array_merge($payload, [
+                'email_verified_at' => null,
+            ]))->save();
+        } else {
+            $user->update($payload);
+        }
         $this->ensureBookableUserLocationAssignments($user, $selectedLocationIds);
+        $refreshedUser = $user->fresh()->load('locations:id,name');
+        $activityLogger->logUserUpdated(
+            $actor,
+            $refreshedUser,
+            $beforeSnapshot,
+            $refreshedUser->locations->pluck('name')->all()
+        );
+
+        $statusMessage = 'Brugeren er opdateret.';
+
+        if ($emailChanged) {
+            try {
+                $user->sendEmailVerificationNotification();
+                $statusMessage = 'Brugeren er opdateret. Bekraeftelsesmail er sendt til den nye e-mailadresse.';
+            } catch (\Throwable $exception) {
+                report($exception);
+                $statusMessage = 'Brugeren er opdateret, men bekræftelsesmailen til den nye e-mailadresse kunne ikke sendes.';
+            }
+        }
 
         return redirect()
             ->route('users.index')
-            ->with('status', 'Brugeren er opdateret.');
+            ->with('status', $statusMessage);
     }
 
-    public function toggleActive(Request $request, User $user): RedirectResponse
+    public function toggleActive(Request $request, User $user, ?ActivityLogger $activityLogger = null): RedirectResponse
     {
+        $activityLogger ??= app(ActivityLogger::class);
         $tenantId = $this->resolveTenantId($request);
         abort_if($tenantId <= 0, 500, 'Ingen aktiv tenant er konfigureret.');
         abort_if((int) $user->tenant_id !== $tenantId, 404);
@@ -439,14 +481,20 @@ class UserManagementController extends Controller
         $user->update([
             'is_active' => $nextIsActive,
         ]);
+        $activityLogger->logUserActivationChanged(
+            $actor,
+            $user->fresh()->load('locations:id,name'),
+            $nextIsActive
+        );
 
         return redirect()
             ->route('users.index', ['users_view' => 'manage'])
             ->with('status', $nextIsActive ? 'Brugeren er sat aktiv.' : 'Brugeren er sat inaktiv.');
     }
 
-    public function destroy(Request $request, User $user): RedirectResponse
+    public function destroy(Request $request, User $user, ?ActivityLogger $activityLogger = null): RedirectResponse
     {
+        $activityLogger ??= app(ActivityLogger::class);
         $tenantId = $this->resolveTenantId($request);
         abort_if($tenantId <= 0, 500, 'Ingen aktiv tenant er konfigureret.');
         abort_if((int) $user->tenant_id !== $tenantId, 404);
@@ -462,16 +510,25 @@ class UserManagementController extends Controller
             return $this->redirectToEditUser($request, $user, 'Den sidste ejer kan ikke slettes.');
         }
 
+        $beforeSnapshot = array_merge(
+            ['id' => (int) $user->id],
+            $activityLogger->userSnapshot(
+                $user->loadMissing('locations:id,name'),
+                $user->locations->pluck('name')->all()
+            )
+        );
         $this->deleteManagedUserProfilePhoto($user->profile_photo_path, $tenantId, (int) $user->id);
         $user->delete();
+        $activityLogger->logUserDeleted($actor, $tenantId, $beforeSnapshot);
 
         return redirect()
             ->route('users.index')
             ->with('status', 'Brugeren er slettet.');
     }
 
-    public function updatePermissions(Request $request): RedirectResponse
+    public function updatePermissions(Request $request, ?ActivityLogger $activityLogger = null): RedirectResponse
     {
+        $activityLogger ??= app(ActivityLogger::class);
         $tenantId = $this->resolveTenantId($request);
         abort_if($tenantId <= 0, 500, 'Ingen aktiv tenant er konfigureret.');
         /** @var User $actor */
@@ -489,6 +546,7 @@ class UserManagementController extends Controller
         }
 
         $this->permissionManager()->updateTenantRolePermissions($tenantId, $requestedMatrix);
+        $activityLogger->logRolePermissionsUpdated($actor, $tenantId);
 
         return redirect()
             ->route('settings.index', $this->settingsRedirectParameters(

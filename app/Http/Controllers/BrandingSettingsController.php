@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Enums\TenantRole;
+use App\Models\ActivityEvent;
 use App\Models\Location;
 use App\Models\SubscriptionPlan;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Support\ActivityLogger;
 use App\Support\RouteUrls;
 use App\Support\TenantRolePermissionManager;
 use App\Support\UploadsStorage;
@@ -20,6 +22,7 @@ class BrandingSettingsController extends Controller
 {
     private const OWNER_BRANDING_UPLOAD_ROOT = 'tenant-branding';
     private const SETTINGS_VIEWS = ['location', 'branding', 'permissions', 'activity'];
+    private const ACTIVITY_SCOPES = ['all', 'bookings', 'users', 'services', 'settings'];
 
     public function index(Request $request): View
     {
@@ -86,19 +89,30 @@ class BrandingSettingsController extends Controller
             );
         }
 
-        $activityUsers = collect();
+        $activityScope = $this->resolveActivityScope($request);
+        $activityEvents = collect();
 
         if ($activeSettingsView === 'activity' && $user instanceof User) {
-            $allowedRoles = $this->allowedRoleValuesFor($user);
-
-            $activityUsers = User::query()
+            $activityEventsQuery = ActivityEvent::query()
                 ->where('tenant_id', $tenantId)
-                ->when(
-                    ! $user->isOwner(),
-                    static fn ($query) => $query->whereIn('role', $allowedRoles)
-                )
-                ->orderByRaw('LOWER(name)')
-                ->get(['id', 'name', 'role', 'is_active', 'is_bookable']);
+                ->with([
+                    'actor:id,name',
+                    'location:id,name',
+                ]);
+
+            if ($activityScope !== 'all') {
+                $activityEventsQuery->where('category', $activityScope);
+            }
+
+            if (! $user->isOwner()) {
+                $accessibleLocationIds = $this->resolveAccessibleLocationIds($request, $tenantId);
+                $activityEventsQuery->whereIn('location_id', $accessibleLocationIds);
+            }
+
+            $activityEvents = $activityEventsQuery
+                ->orderByDesc('created_at')
+                ->limit(100)
+                ->get();
         }
 
         return view('settings', [
@@ -124,14 +138,17 @@ class BrandingSettingsController extends Controller
             'permissionDefinitions' => $permissionDefinitions,
             'permissionRoleOptions' => $permissionRoleOptions,
             'permissionMatrix' => $permissionMatrix,
-            'activityUsers' => $activityUsers,
+            'activityScope' => $activityScope,
+            'activityEvents' => $activityEvents,
         ]);
     }
 
-    public function update(Request $request): RedirectResponse
+    public function update(Request $request, ?ActivityLogger $activityLogger = null): RedirectResponse
     {
+        $activityLogger ??= app(ActivityLogger::class);
         $tenantId = $this->resolveTenantId($request);
         abort_if($tenantId <= 0, 500, 'Ingen aktiv tenant er konfigureret.');
+        /** @var User $user */
         $user = $request->user();
         $isLocationManager = $user instanceof User && $user->isLocationManager();
         $lockedLocationId = $isLocationManager
@@ -171,20 +188,25 @@ class BrandingSettingsController extends Controller
                 : (int) ($introPayload['location_id'] ?? 0);
             abort_if(! $this->canAccessLocation($request, $tenantId, $introLocationId), 404);
 
-            Location::query()
+            /** @var Location $location */
+            $location = Location::query()
                 ->where('tenant_id', $tenantId)
                 ->whereKey($introLocationId)
-                ->update([
-                    'name' => trim((string) $introPayload['location_name']),
-                    'public_booking_intro_text' => $this->nullableTrim($introPayload['location_public_booking_intro_text'] ?? null),
-                    'public_booking_confirmation_text' => $this->nullableTrim($introPayload['location_public_booking_confirmation_text'] ?? null),
-                    'address_line_1' => $this->nullableTrim($introPayload['location_address_line_1'] ?? null),
-                    'address_line_2' => $this->nullableTrim($introPayload['location_address_line_2'] ?? null),
-                    'postal_code' => $this->nullableTrim($introPayload['location_postal_code'] ?? null),
-                    'city' => $this->nullableTrim($introPayload['location_city'] ?? null),
-                    'public_contact_phone' => $this->nullableTrim($introPayload['location_public_contact_phone'] ?? null),
-                    'public_contact_email' => $this->nullableTrim($introPayload['location_public_contact_email'] ?? null),
-                ]);
+                ->firstOrFail();
+            $beforeSnapshot = $activityLogger->locationSettingsSnapshot($location);
+
+            $location->update([
+                'name' => trim((string) $introPayload['location_name']),
+                'public_booking_intro_text' => $this->nullableTrim($introPayload['location_public_booking_intro_text'] ?? null),
+                'public_booking_confirmation_text' => $this->nullableTrim($introPayload['location_public_booking_confirmation_text'] ?? null),
+                'address_line_1' => $this->nullableTrim($introPayload['location_address_line_1'] ?? null),
+                'address_line_2' => $this->nullableTrim($introPayload['location_address_line_2'] ?? null),
+                'postal_code' => $this->nullableTrim($introPayload['location_postal_code'] ?? null),
+                'city' => $this->nullableTrim($introPayload['location_city'] ?? null),
+                'public_contact_phone' => $this->nullableTrim($introPayload['location_public_contact_phone'] ?? null),
+                'public_contact_email' => $this->nullableTrim($introPayload['location_public_contact_email'] ?? null),
+            ]);
+            $activityLogger->logLocationSettingsUpdated($user, $location->fresh(), $beforeSnapshot);
 
             return redirect()
                 ->route('settings.index', $this->settingsRedirectParameters(
@@ -232,10 +254,11 @@ class BrandingSettingsController extends Controller
             'work_shifts_enabled' => ['nullable', 'boolean'],
             'remove_public_logo' => ['nullable', 'boolean'],
             'reset_branding' => ['nullable', 'boolean'],
-            'public_logo_file' => ['nullable', 'file', 'max:4096', 'mimes:svg,png,jpg,jpeg,webp'],
+            'public_logo_file' => ['nullable', 'image', 'max:4096', 'mimes:png,jpg,jpeg,webp'],
         ]);
 
         if ((bool) ($payload['reset_branding'] ?? false)) {
+            $tenant->refresh();
             $this->deleteManagedLogoFile($tenant->public_logo_path, (int) $tenant->id);
 
             $tenant->update([
@@ -246,6 +269,7 @@ class BrandingSettingsController extends Controller
                 'public_accent_color' => null,
                 'show_powered_by' => $planRequiresPoweredBy,
             ]);
+            $activityLogger->logBrandingReset($user, $tenant->fresh());
 
             return redirect()
                 ->route('settings.index', $this->settingsRedirectParameters(
@@ -272,6 +296,7 @@ class BrandingSettingsController extends Controller
             }
         }
 
+        $beforeSnapshot = $activityLogger->brandingSnapshot($tenant);
         $tenant->update([
             'public_brand_name' => $this->nullableTrim($payload['public_brand_name'] ?? null),
             'slug' => trim((string) $payload['slug']),
@@ -285,6 +310,7 @@ class BrandingSettingsController extends Controller
             'require_service_categories' => (bool) ($payload['require_service_categories'] ?? true),
             'work_shifts_enabled' => (bool) ($payload['work_shifts_enabled'] ?? true),
         ]);
+        $activityLogger->logBrandingUpdated($user, $tenant->fresh(), $beforeSnapshot);
 
         return redirect()
             ->route('settings.index', $this->settingsRedirectParameters(
@@ -302,6 +328,15 @@ class BrandingSettingsController extends Controller
         return in_array($requestedView, self::SETTINGS_VIEWS, true)
             ? $requestedView
             : $fallback;
+    }
+
+    private function resolveActivityScope(Request $request): string
+    {
+        $requestedScope = trim((string) $request->query('activity_scope', 'all'));
+
+        return in_array($requestedScope, self::ACTIVITY_SCOPES, true)
+            ? $requestedScope
+            : 'all';
     }
 
     /**
