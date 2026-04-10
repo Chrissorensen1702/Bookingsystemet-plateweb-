@@ -1,5 +1,12 @@
 /* Shared mobile optimizations across dashboard, public booking, login and platform pages. */
 
+:root {
+  --app-safe-top: env(safe-area-inset-top, 0px);
+  --app-safe-right: env(safe-area-inset-right, 0px);
+  --app-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --app-safe-left: env(safe-area-inset-left, 0px);
+}
+
 html,
 body {
   max-width: 100%;
@@ -12,12 +19,28 @@ body {
   }
 
   .header {
-    padding-left: max(14px, env(safe-area-inset-left));
-    padding-right: max(14px, env(safe-area-inset-right));
+    padding-left: max(14px, var(--app-safe-left));
+    padding-right: max(14px, var(--app-safe-right));
   }
 
   .main-content {
-    padding-bottom: max(96px, calc(88px + env(safe-area-inset-bottom)));
+    padding-top: max(10px, var(--app-safe-top));
+    padding-left: max(12px, var(--app-safe-left));
+    padding-right: max(12px, var(--app-safe-right));
+    padding-bottom: max(96px, calc(88px + var(--app-safe-bottom)));
+  }
+
+  .booking-home-body .main-content {
+    padding-top: max(8px, var(--app-safe-top));
+    padding-left: max(10px, var(--app-safe-left));
+    padding-right: max(10px, var(--app-safe-right));
+  }
+
+  .profile-page-body .main-content {
+    padding-top: max(8px, var(--app-safe-top));
+    padding-left: max(10px, var(--app-safe-left));
+    padding-right: max(10px, var(--app-safe-right));
+    padding-bottom: calc(74px + var(--app-safe-bottom));
   }
 
   .sidebar-nav {
@@ -94,9 +117,42 @@ body {
     justify-content: center;
     text-align: center;
   }
+
+  .public-booking-powered-header {
+    padding-top: var(--app-safe-top);
+  }
+
+  .public-booking-powered-header-inner {
+    padding-left: max(14px, var(--app-safe-left));
+    padding-right: max(14px, var(--app-safe-right));
+  }
 }
 
 @media (max-width: 760px) {
+  .login-page {
+    padding:
+      max(10px, var(--app-safe-top))
+      max(14px, var(--app-safe-right))
+      max(10px, var(--app-safe-bottom))
+      max(14px, var(--app-safe-left));
+  }
+
+  .platform-shell {
+    padding:
+      max(20px, var(--app-safe-top))
+      max(14px, var(--app-safe-right))
+      calc(32px + var(--app-safe-bottom))
+      max(14px, var(--app-safe-left));
+  }
+
+  .public-booking-page {
+    padding:
+      max(18px, var(--app-safe-top))
+      max(14px, var(--app-safe-right))
+      calc(30px + var(--app-safe-bottom))
+      max(14px, var(--app-safe-left));
+  }
+
   .booking-filter-head {
     align-items: flex-start;
   }
@@ -126,8 +182,8 @@ body {
 
 @media (max-width: 480px) {
   .header {
-    padding-left: max(12px, env(safe-area-inset-left));
-    padding-right: max(12px, env(safe-area-inset-right));
+    padding-left: max(12px, var(--app-safe-left));
+    padding-right: max(12px, var(--app-safe-right));
   }
 
   .sidebar-brand .logo {
@@ -144,7 +200,14 @@ body {
 
   .platform-shell,
   .public-booking-page {
-    padding-left: max(12px, env(safe-area-inset-left));
-    padding-right: max(12px, env(safe-area-inset-right));
+    padding-left: max(12px, var(--app-safe-left));
+    padding-right: max(12px, var(--app-safe-right));
+  }
+
+  .login-page,
+  .booking-home-body .main-content,
+  .profile-page-body .main-content {
+    padding-left: max(10px, var(--app-safe-left));
+    padding-right: max(10px, var(--app-safe-right));
   }
 }

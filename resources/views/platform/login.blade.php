@@ -2,7 +2,7 @@
 <html lang="da">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   @include('layouts.partials.pwa-meta')
   <title>Platform Login | Bookingsystem</title>
   @vite(['resources/css/app-login.css', 'resources/js/pwa.js', 'resources/js/pages/login-password-toggle.js'])
