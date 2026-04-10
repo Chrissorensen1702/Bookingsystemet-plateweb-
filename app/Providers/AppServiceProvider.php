@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Http\Responses\WebauthnLoginSuccessResponse;
 use App\Models\User;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -101,6 +102,8 @@ class AppServiceProvider extends ServiceProvider
                 ? $user
                 : null;
         });
+
+        WebauthnFacade::loginSuccessResponseUsing(WebauthnLoginSuccessResponse::class);
 
         RateLimiter::for('public-booking-view', function (Request $request): Limit {
             $tenant = mb_strtolower(trim((string) (

@@ -47,6 +47,7 @@
           method="POST"
           action="{{ route('login.store') }}"
           data-csrf-submit-mode="native"
+          data-native-app="{{ !empty($nativeApp) ? '1' : '0' }}"
           data-auth-state-url="{{ route('auth.state') }}"
           data-auth-state-guard="web"
           data-auth-state-goal="authenticated"
@@ -58,6 +59,10 @@
           data-passkey-redirect-url="{{ \App\Support\RouteUrls::appHome() }}"
         >
           @csrf
+          @if (!empty($nativeApp))
+            <input type="hidden" name="native_app" value="1">
+            <input type="hidden" name="remember" value="1">
+          @endif
           <div class="login-alert" data-passkey-feedback role="status" hidden></div>
 
           <label class="login-field">

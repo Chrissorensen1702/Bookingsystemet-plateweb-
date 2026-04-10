@@ -100,6 +100,7 @@ for (const form of forms) {
   const optionsUrl = form.dataset.passkeyOptionsUrl || '';
   const authUrl = form.dataset.passkeyAuthUrl || '';
   const redirectUrl = form.dataset.passkeyRedirectUrl || '/';
+  const nativeApp = form.dataset.nativeApp === '1';
   const initialLabel = button.textContent || 'Log ind med passkey';
   const csrfInput = form.querySelector('input[name="_token"]');
 
@@ -208,6 +209,11 @@ for (const form of forms) {
       const payload = serializeAssertion(credential);
       payload.email = email;
       payload.is_active = '1';
+      payload.remember = nativeApp ? '1' : '';
+
+      if (nativeApp) {
+        payload.native_app = '1';
+      }
 
       const authResponse = await fetch(authUrl, {
         method: 'POST',

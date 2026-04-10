@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\AuthRedirects;
+use App\Support\NativeApp;
 use App\Support\RouteUrls;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -11,17 +13,23 @@ use LaravelWebauthn\Facades\Webauthn as WebauthnFacade;
 
 class LoginController extends Controller
 {
-    public function show(): View|RedirectResponse
+    public function show(Request $request): View|RedirectResponse
     {
+        $nativeApp = NativeApp::syncSession($request);
+
         if (Auth::check()) {
             return redirect()->to(RouteUrls::appHome());
         }
 
-        return view('login');
+        return view('login', [
+            'nativeApp' => $nativeApp,
+        ]);
     }
 
     public function store(Request $request): RedirectResponse
     {
+        $nativeApp = NativeApp::syncSession($request);
+
         if (Auth::check()) {
             return redirect()->to(RouteUrls::appHome());
         }
@@ -35,58 +43,46 @@ class LoginController extends Controller
             'password' => ['required', 'string'],
         ]);
 
+        $remember = $nativeApp || $request->boolean('remember');
+
         if (! Auth::attempt([
             'email' => $credentials['email'],
             'password' => $credentials['password'],
             'is_active' => true,
-        ], false)) {
+        ], $remember)) {
             return back()->withErrors([
                 'email' => 'Forkert e-mail eller adgangskode.',
             ])->onlyInput('email');
         }
 
         $request->session()->regenerate();
+        NativeApp::syncSession($request);
 
-        return redirect()->to($this->resolvePostLoginRedirect($request));
+        $response = redirect()->to(AuthRedirects::resolvePostLoginRedirect($request));
+
+        if ($nativeApp) {
+            $response->withCookie(NativeApp::lockCookie($request));
+        }
+
+        return $response;
     }
 
     public function destroy(Request $request): RedirectResponse
     {
+        $nativeApp = NativeApp::isEnabled($request);
+
         Auth::logout();
         WebauthnFacade::logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login');
-    }
+        $response = redirect()->route('login', $nativeApp ? NativeApp::query() : []);
 
-    private function resolvePostLoginRedirect(Request $request): string
-    {
-        $fallback = RouteUrls::appHome();
-        $intended = $request->session()->pull('url.intended');
-
-        if (! is_string($intended) || trim($intended) === '') {
-            return $fallback;
+        if ($nativeApp) {
+            $response->withCookie(NativeApp::forgetLockCookie($request));
         }
 
-        $intendedHost = mb_strtolower(trim((string) (parse_url($intended, PHP_URL_HOST) ?: '')));
-        $intendedPath = '/'.ltrim((string) (parse_url($intended, PHP_URL_PATH) ?: '/'), '/');
-        $loginHost = mb_strtolower(RouteUrls::loginHost());
-        $appHost = mb_strtolower(RouteUrls::appHost());
-
-        if ($loginHost !== '' && $intendedHost === $loginHost) {
-            return $fallback;
-        }
-
-        if ($intendedPath === '/login') {
-            return $fallback;
-        }
-
-        if ($intendedHost !== '' && $appHost !== '' && $intendedHost !== $appHost) {
-            return $fallback;
-        }
-
-        return $intended;
+        return $response;
     }
 }
