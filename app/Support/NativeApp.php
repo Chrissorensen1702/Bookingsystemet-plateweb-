@@ -12,7 +12,7 @@ class NativeApp
 
     public static function syncSession(Request $request): bool
     {
-        $nativeApp = $request->boolean(self::QUERY_KEY) || $request->session()->boolean(self::QUERY_KEY);
+        $nativeApp = $request->boolean(self::QUERY_KEY) || self::sessionFlag($request);
 
         if ($nativeApp) {
             $request->session()->put(self::QUERY_KEY, true);
@@ -23,7 +23,7 @@ class NativeApp
 
     public static function isEnabled(Request $request): bool
     {
-        return $request->boolean(self::QUERY_KEY) || $request->session()->boolean(self::QUERY_KEY);
+        return $request->boolean(self::QUERY_KEY) || self::sessionFlag($request);
     }
 
     /**
@@ -86,5 +86,10 @@ class NativeApp
         $appUrl = trim((string) config('app.url', ''));
 
         return str_starts_with($appUrl, 'https://');
+    }
+
+    private static function sessionFlag(Request $request): bool
+    {
+        return filter_var($request->session()->get(self::QUERY_KEY, false), FILTER_VALIDATE_BOOLEAN);
     }
 }
