@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   @include('layouts.partials.pwa-meta')
-  <title>Platform Login | Bookingsystem</title>
+  <title>Platform Login | PlateBook</title>
   @vite(['resources/css/app-login.css', 'resources/js/pwa.js', 'resources/js/pages/login-password-toggle.js'])
 </head>
 <body class="login-page-body">
@@ -12,16 +12,17 @@
     <section class="login-panel">
       <div class="login-brand">
         <a href="{{ route('platform.login') }}" class="login-brand-link">
-          <img src="{{ asset('images/logo/header.svg') }}" alt="PlateBook" class="logo-login">
+          <img src="{{ asset('images/logo/platebook-brand.svg') }}" alt="PlateBook" class="logo-login">
         </a>
       </div>
 
       <div class="login-card">
         <div class="login-copy">
+          <p class="login-eyebrow">Intern platformadgang</p>
           <h1>Platform adgang</h1>
           <p class="login-text">
             Developer-login er adskilt fra kundernes login og bruges til opsætning,
-            support og drift pa tværs af virksomheder.
+            support og drift på tværs af virksomheder.
           </p>
         </div>
 
@@ -81,7 +82,7 @@
 
           <div class="login-help">
             <p>Dette login er kun til intern platform-adgang.</p>
-            <a href="{{ route('login') }}" class="login-public-link">Ga til kunde/medarbejder-login</a>
+            <a href="{{ route('login') }}" class="login-public-link">Gå til kunde- og medarbejderlogin</a>
           </div>
         </form>
       </div>

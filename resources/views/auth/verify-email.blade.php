@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   @include('layouts.partials.pwa-meta')
-  <title>Bekræft e-mail | Bookingsystem</title>
+  <title>Bekræft e-mail | PlateBook</title>
   @vite([
     'resources/css/app-login.css',
     'resources/js/pwa.js',
@@ -15,12 +15,13 @@
     <section class="login-panel">
       <div class="login-brand">
         <a href="{{ route('login') }}" class="login-brand-link">
-          <img src="{{ asset('images/logo/header.svg') }}" alt="PlateBook" class="logo-login">
+          <img src="{{ asset('images/logo/platebook-brand.svg') }}" alt="PlateBook" class="logo-login">
         </a>
       </div>
 
       <div class="login-card">
         <div class="login-copy">
+          <p class="login-eyebrow">Booking system</p>
           <h1>Bekræft din e-mail</h1>
           <p class="login-text">
             Din bruger er oprettet, men du skal bekræfte din e-mail, før du kan bruge systemet.

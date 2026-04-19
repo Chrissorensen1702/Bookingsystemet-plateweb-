@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   @include('layouts.partials.pwa-meta')
-  <title>Login | Bookingsystem</title>
+  <title>Login | PlateBook</title>
   @vite([
     'resources/css/app-login.css',
     'resources/js/pwa.js',
@@ -17,16 +17,17 @@
     <section class="login-panel">
       <div class="login-brand">
         <a href="{{ route('login') }}" class="login-brand-link">
-          <img src="{{ asset('images/logo/header.svg') }}" alt="PlateBook" class="logo-login">
+          <img src="{{ asset('images/logo/platebook-brand.svg') }}" alt="PlateBook" class="logo-login">
         </a>
       </div>
 
       <div class="login-card">
         <div class="login-copy">
-          <h1>Virksomheds log-in til PlateBooking</h1>
+          <p class="login-eyebrow">Booking system</p>
+          <h1>Log ind på PlateBook</h1>
           <p class="login-text">
-            Brug din registerede email og adgangskode, for at
-            komme ind til kalender, indstillinger samt administere bookbarhed.
+            Brug din registrerede e-mail og adgangskode for at få adgang til kalender,
+            indstillinger og bookbarhed i PlateBook.
           </p>
         </div>
 

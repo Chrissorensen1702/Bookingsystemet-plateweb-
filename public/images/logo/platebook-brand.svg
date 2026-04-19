@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="420" viewBox="0 0 1600 420" fill="none">
+  <defs>
+    <linearGradient id="platebook-header" x1="86" y1="64" x2="282" y2="252" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0E1833"/>
+      <stop offset="1" stop-color="#5E7097"/>
+    </linearGradient>
+    <linearGradient id="platebook-check" x1="214" y1="202" x2="282" y2="270" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6E83AD"/>
+      <stop offset="1" stop-color="#4F6288"/>
+    </linearGradient>
+    <linearGradient id="platebook-underline" x1="418" y1="348" x2="1214" y2="348" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5E7097" stop-opacity="0"/>
+      <stop offset="0.16" stop-color="#6E83AD" stop-opacity="0.78"/>
+      <stop offset="0.55" stop-color="#5E7097" stop-opacity="0.94"/>
+      <stop offset="0.86" stop-color="#4F6288" stop-opacity="0.88"/>
+      <stop offset="1" stop-color="#4F6288" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="platebook-shadow" x="34" y="36" width="314" height="318" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#0E1833" flood-opacity="0.14"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#platebook-shadow)">
+    <rect x="58" y="50" width="268" height="268" rx="72" fill="#F8FAFD"/>
+    <rect x="58.75" y="50.75" width="266.5" height="266.5" rx="71.25" stroke="#D7DFEC" stroke-width="1.5"/>
+
+    <path d="M58 122C58 82.2355 90.2355 50 130 50H254C293.765 50 326 82.2355 326 122V156H58V122Z" fill="url(#platebook-header)"/>
+
+    <rect x="112" y="34" width="24" height="56" rx="12" fill="#0E1833"/>
+    <rect x="248" y="34" width="24" height="56" rx="12" fill="#5E7097"/>
+
+    <rect x="102" y="186" width="48" height="40" rx="12" fill="#D9E3F2"/>
+    <rect x="168" y="186" width="48" height="40" rx="12" fill="#D9E3F2"/>
+    <rect x="234" y="186" width="48" height="40" rx="12" fill="#D9E3F2"/>
+    <rect x="102" y="244" width="48" height="40" rx="12" fill="#E8EEF7"/>
+    <rect x="168" y="244" width="48" height="40" rx="12" fill="#E8EEF7"/>
+
+    <circle cx="252" cy="252" r="40" fill="url(#platebook-check)"/>
+    <path d="M233 252L247 266L272 241" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <text
+    x="404"
+    y="222"
+    font-family="Baskerville, 'Iowan Old Style', 'Times New Roman', serif"
+    font-size="184"
+    font-weight="700"
+    letter-spacing="-4"
+  ><tspan fill="#0E1833" font-style="italic">Plate</tspan><tspan dx="8" fill="#5E7097" font-style="normal">Book</tspan></text>
+
+  <text
+    x="418"
+    y="282"
+    fill="#6B7892"
+    font-family="Avenir Next, 'Helvetica Neue', Arial, sans-serif"
+    font-size="38"
+    font-weight="600"
+    letter-spacing="5"
+  >BOOKING SYSTEM</text>
+
+  <path
+    d="M418 338C564 325 744 320 944 320C1064 320 1154 324 1214 330"
+    stroke="url(#platebook-underline)"
+    stroke-width="11"
+    stroke-linecap="round"
+  />
+</svg>
