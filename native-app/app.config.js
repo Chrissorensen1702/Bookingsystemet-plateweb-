@@ -1,4 +1,4 @@
-const LOCAL_BASE_URL = 'http://192.168.1.193/bookingsystem/public';
+const DEFAULT_BASE_URL = 'https://login.platebook.dk';
 
 function stripTrailingSlash(value) {
   return String(value || '').replace(/\/+$/, '');
@@ -9,7 +9,7 @@ function resolveBaseUrl(config) {
     process.env.EXPO_PUBLIC_API_BASE_URL
       || process.env.PLATEBOOK_API_BASE_URL
       || config.extra?.baseUrl
-      || LOCAL_BASE_URL
+      || DEFAULT_BASE_URL
   );
 }
 

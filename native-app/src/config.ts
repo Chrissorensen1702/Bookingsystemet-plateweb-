@@ -7,7 +7,7 @@ type ExpoConfigExtra = {
 const extra = (Constants.expoConfig?.extra ?? {}) as ExpoConfigExtra;
 
 export const appConfig = {
-  baseUrl: stripTrailingSlash(extra.baseUrl ?? 'http://192.168.1.193/bookingsystem/public'),
+  baseUrl: stripTrailingSlash(extra.baseUrl ?? 'https://login.platebook.dk'),
 };
 
 export function apiUrl(path: string) {

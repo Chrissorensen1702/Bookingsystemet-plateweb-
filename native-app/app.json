@@ -26,11 +26,15 @@
       }
     },
     "extra": {
-      "baseUrl": "http://192.168.1.193/bookingsystem/public"
+      "baseUrl": "https://login.platebook.dk",
+      "eas": {
+        "projectId": "1c0a324b-1670-409b-9ffb-828d0e3bd5b0"
+      }
     },
     "plugins": [
       "expo-font",
       "expo-notifications"
-    ]
+    ],
+    "owner": "chrissorensen"
   }
 }

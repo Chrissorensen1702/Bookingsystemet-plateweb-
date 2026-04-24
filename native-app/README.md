@@ -24,14 +24,13 @@ EXPO_PUBLIC_API_BASE_URL=https://ditdomæne.dk
 EXPO_PUBLIC_EAS_PROJECT_ID=din-eas-project-id
 ```
 
-Hvis variablen ikke er sat, bruger appen den lokale udviklingsadresse fra `app.json`.
-Til produktion skal værdien være dit Laravel Cloud-domæne uden `/api`, f.eks.
-`https://ditdomæne.dk`.
+Hvis variablen ikke er sat, bruger appen produktionsadressen fra `app.json`.
+Værdien skal være dit Laravel Cloud-domæne uden `/api`, f.eks. `https://ditdomæne.dk`.
 
 `EXPO_PUBLIC_EAS_PROJECT_ID` bruges til Expo push-notifikationer. Uden den kan appen stadig køre,
 men den registrerer ikke push-token.
 
-## Kør på iPhone med Xcode
+## Kør på iPhone med Xcode under udvikling
 
 iOS-projektet er genereret i `ios/`, og CocoaPods er installeret.
 
@@ -54,6 +53,9 @@ open ios/PlateBook.xcworkspace
 6. Vælg dit Apple Developer Team under `Signing & Capabilities`.
 7. Tryk Run.
 
+Når appen køres sådan i Debug fra Xcode, kræver den Metro på din Mac. Den kan derfor ikke bruges
+uden for samme netværk, selvom API'et ligger online.
+
 Hvis Pods skal geninstalleres på denne Mac:
 
 ```bash
@@ -69,16 +71,18 @@ når der oprettes en ny booking via native app, intern booking eller public book
 For at push virker på iPhone skal appen bygges på en fysisk enhed med push credentials.
 Med Expo betyder det normalt, at projektet har en EAS project id og iOS push credentials.
 
-## Produktion
+## Produktion / uden WiFi
 
-Når Laravel Cloud er deployet, skal appen bygges med:
+Hvis appen skal kunne åbne væk fra din Mac og uden WiFi, skal den installeres som Release-build
+eller Archive, så JavaScript-bundlen ligger inde i appen:
 
-```bash
-cd native-app
-EXPO_PUBLIC_API_BASE_URL=https://ditdomæne.dk EXPO_PUBLIC_EAS_PROJECT_ID=din-eas-project-id npm run start -- --localhost
-```
+1. Åbn `ios/PlateBook.xcworkspace` i Xcode.
+2. Vælg `Product -> Scheme -> Edit Scheme`.
+3. Vælg `Run` i venstre side.
+4. Sæt `Build Configuration` til `Release`.
+5. Vælg din iPhone og tryk Run.
 
-Åbn derefter `ios/PlateBook.xcworkspace` i Xcode og kør appen på iPhone.
+I Release-build skal Metro ikke køre.
 
 ## Videre plan
 
