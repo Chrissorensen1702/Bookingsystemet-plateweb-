@@ -12,6 +12,7 @@ use App\Support\ActivityLogger;
 use App\Support\BookingSlotManager;
 use App\Support\BookingSmsNotifier;
 use App\Support\LocationAvailability;
+use App\Support\NativePushNotifier;
 use App\Support\WorkShiftAvailability;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
@@ -30,10 +31,12 @@ class BookingManagementController extends Controller
         BookingSlotManager $slotManager,
         WorkShiftAvailability $shiftAvailability,
         BookingSmsNotifier $smsNotifier,
-        ?ActivityLogger $activityLogger = null
+        ?ActivityLogger $activityLogger = null,
+        ?NativePushNotifier $pushNotifier = null
     ): RedirectResponse
     {
         $activityLogger ??= app(ActivityLogger::class);
+        $pushNotifier ??= app(NativePushNotifier::class);
         $tenantId = $this->resolveTenantId($request);
         abort_if($tenantId <= 0, 500, 'Ingen aktiv tenant er konfigureret.');
         $workShiftsEnabled = $this->isWorkShiftsEnabledForTenant($tenantId);
@@ -250,6 +253,7 @@ class BookingManagementController extends Controller
         }
 
         $activityLogger->logBookingCreated($actor, $booking->fresh());
+        $pushNotifier->sendBookingCreated($booking);
 
         return redirect()
             ->route('booking-calender', $this->calendarQueryFromRequest($request, [

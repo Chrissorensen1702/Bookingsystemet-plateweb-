@@ -21,11 +21,15 @@ Opret evt. `native-app/.env` lokalt:
 
 ```env
 EXPO_PUBLIC_API_BASE_URL=https://ditdomæne.dk
+EXPO_PUBLIC_EAS_PROJECT_ID=din-eas-project-id
 ```
 
 Hvis variablen ikke er sat, bruger appen den lokale udviklingsadresse fra `app.json`.
 Til produktion skal værdien være dit Laravel Cloud-domæne uden `/api`, f.eks.
 `https://ditdomæne.dk`.
+
+`EXPO_PUBLIC_EAS_PROJECT_ID` bruges til Expo push-notifikationer. Uden den kan appen stadig køre,
+men den registrerer ikke push-token.
 
 ## Kør på iPhone med Xcode
 
@@ -56,13 +60,22 @@ Hvis Pods skal geninstalleres på denne Mac:
 npm run ios:pods
 ```
 
+## Push-notifikationer
+
+Appen beder om notifikationstilladelse efter login og sender en Expo push-token til Laravel.
+Laravel gemmer token på den aktive native app session og sender en push-besked til behandleren,
+når der oprettes en ny booking via native app, intern booking eller public booking.
+
+For at push virker på iPhone skal appen bygges på en fysisk enhed med push credentials.
+Med Expo betyder det normalt, at projektet har en EAS project id og iOS push credentials.
+
 ## Produktion
 
 Når Laravel Cloud er deployet, skal appen bygges med:
 
 ```bash
 cd native-app
-EXPO_PUBLIC_API_BASE_URL=https://ditdomæne.dk npm run start -- --localhost
+EXPO_PUBLIC_API_BASE_URL=https://ditdomæne.dk EXPO_PUBLIC_EAS_PROJECT_ID=din-eas-project-id npm run start -- --localhost
 ```
 
 Åbn derefter `ios/PlateBook.xcworkspace` i Xcode og kør appen på iPhone.

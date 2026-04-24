@@ -14,6 +14,7 @@ use App\Support\ActivityLogger;
 use App\Support\BookingSlotManager;
 use App\Support\BookingSmsNotifier;
 use App\Support\LocationAvailability;
+use App\Support\NativePushNotifier;
 use App\Support\WorkShiftAvailability;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
@@ -173,10 +174,12 @@ class NativeAppController extends Controller
         BookingSlotManager $slotManager,
         WorkShiftAvailability $shiftAvailability,
         BookingSmsNotifier $smsNotifier,
-        ?ActivityLogger $activityLogger = null
+        ?ActivityLogger $activityLogger = null,
+        ?NativePushNotifier $pushNotifier = null
     ): JsonResponse
     {
         $activityLogger ??= app(ActivityLogger::class);
+        $pushNotifier ??= app(NativePushNotifier::class);
         $tenantId = $this->resolveTenantId($request);
         abort_if($tenantId <= 0, 500, 'Ingen aktiv tenant er konfigureret.');
 
@@ -378,6 +381,7 @@ class NativeAppController extends Controller
         }
 
         $activityLogger->logBookingCreated($actor, $booking->fresh());
+        $pushNotifier->sendBookingCreated($booking);
 
         $booking->load($this->bookingRelations());
 

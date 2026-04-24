@@ -29,7 +29,8 @@
       "baseUrl": "http://192.168.1.193/bookingsystem/public"
     },
     "plugins": [
-      "expo-font"
+      "expo-font",
+      "expo-notifications"
     ]
   }
 }

@@ -11,6 +11,10 @@ class NativeAppToken extends Model
         'user_id',
         'name',
         'token_hash',
+        'push_token',
+        'push_platform',
+        'notifications_enabled',
+        'push_token_updated_at',
         'last_used_at',
         'expires_at',
         'ip_address',
@@ -22,6 +26,8 @@ class NativeAppToken extends Model
         return [
             'last_used_at' => 'datetime',
             'expires_at' => 'datetime',
+            'notifications_enabled' => 'boolean',
+            'push_token_updated_at' => 'datetime',
         ];
     }
 

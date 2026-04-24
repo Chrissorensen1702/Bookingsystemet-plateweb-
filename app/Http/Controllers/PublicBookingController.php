@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Support\BookingSlotManager;
 use App\Support\BookingSmsNotifier;
 use App\Support\LocationAvailability;
+use App\Support\NativePushNotifier;
 use App\Support\RouteUrls;
 use App\Support\UploadsStorage;
 use App\Support\WorkShiftAvailability;
@@ -493,9 +494,11 @@ class PublicBookingController extends Controller
         LocationAvailability $availability,
         BookingSlotManager $slotManager,
         WorkShiftAvailability $shiftAvailability,
-        BookingSmsNotifier $smsNotifier
+        BookingSmsNotifier $smsNotifier,
+        ?NativePushNotifier $pushNotifier = null
     ): RedirectResponse
     {
+        $pushNotifier ??= app(NativePushNotifier::class);
         $tenant = $this->resolvePublicTenant($request);
         $tenantId = (int) $tenant->id;
         $tenantSettings = Tenant::query()
@@ -771,6 +774,8 @@ class PublicBookingController extends Controller
         } catch (Throwable $exception) {
             report($exception);
         }
+
+        $pushNotifier->sendBookingCreated($booking);
 
         return redirect()
             ->to($this->publicBookingUrl($tenant, $location, $request))

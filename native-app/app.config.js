@@ -15,6 +15,10 @@ function resolveBaseUrl(config) {
 
 module.exports = ({ config }) => {
   const baseUrl = resolveBaseUrl(config);
+  const easProjectId = process.env.EXPO_PUBLIC_EAS_PROJECT_ID
+    || process.env.EAS_PROJECT_ID
+    || config.extra?.eas?.projectId
+    || null;
   const infoPlist = { ...(config.ios?.infoPlist || {}) };
 
   if (baseUrl.startsWith('https://')) {
@@ -26,6 +30,12 @@ module.exports = ({ config }) => {
     extra: {
       ...(config.extra || {}),
       baseUrl,
+      ...(easProjectId ? {
+        eas: {
+          ...(config.extra?.eas || {}),
+          projectId: easProjectId,
+        },
+      } : {}),
     },
     ios: {
       ...(config.ios || {}),

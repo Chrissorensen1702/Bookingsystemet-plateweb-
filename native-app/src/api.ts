@@ -122,6 +122,17 @@ export function createBooking(token: string, payload: CreateBookingPayload) {
   });
 }
 
+export function registerPushToken(token: string, pushToken: string, platform: 'ios' | 'android' | 'unknown') {
+  return apiRequest<{ message: string }>('/notifications/register', {
+    method: 'POST',
+    token,
+    body: {
+      push_token: pushToken,
+      platform,
+    },
+  });
+}
+
 export function logout(token: string) {
   return apiRequest<{ message: string }>('/logout', {
     method: 'DELETE',

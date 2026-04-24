@@ -4,6 +4,7 @@ use App\Models\Booking;
 use App\Models\Customer;
 use App\Models\Location;
 use App\Models\LocationOpeningHour;
+use App\Models\NativeAppToken;
 use App\Models\Service;
 use App\Models\ServiceCategory;
 use App\Models\Tenant;
@@ -11,6 +12,7 @@ use App\Models\User;
 use App\Models\UserWorkShift;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 
 it('authenticates native app users and returns booking data', function (): void {
     CarbonImmutable::setTestNow(CarbonImmutable::create(2026, 4, 24, 9, 0, 0, 'Europe/Copenhagen'));
@@ -142,6 +144,19 @@ it('authenticates native app users and returns booking data', function (): void 
     $token = (string) $loginResponse->json('token');
 
     $this->withToken($token)
+        ->postJson('/api/native/notifications/register', [
+            'push_token' => 'ExpoPushToken[test-token]',
+            'platform' => 'ios',
+        ])
+        ->assertOk();
+
+    expect(NativeAppToken::query()
+        ->where('user_id', $user->id)
+        ->where('push_token', 'ExpoPushToken[test-token]')
+        ->where('notifications_enabled', true)
+        ->exists())->toBeTrue();
+
+    $this->withToken($token)
         ->getJson('/api/native/bootstrap')
         ->assertOk()
         ->assertJsonFragment(['name' => 'Hovedafdeling']);
@@ -174,6 +189,14 @@ it('authenticates native app users and returns booking data', function (): void 
         ->assertJsonPath('staff.0.name', 'Native User')
         ->assertJsonPath('staff.0.service_ids.0', $service->id);
 
+    Http::fake([
+        'https://exp.host/--/api/v2/push/send' => Http::response([
+            'data' => [
+                ['status' => 'ok', 'id' => 'ticket-id'],
+            ],
+        ]),
+    ]);
+
     $this->withToken($token)
         ->postJson('/api/native/bookings', [
             'location_id' => $location->id,
@@ -187,6 +210,16 @@ it('authenticates native app users and returns booking data', function (): void 
         ->assertCreated()
         ->assertJsonPath('booking.customer', 'Ny Kunde')
         ->assertJsonPath('booking.time_range', '12:00 - 12:45');
+
+    Http::assertSent(function ($request): bool {
+        $payload = $request->data();
+
+        return $request->url() === 'https://exp.host/--/api/v2/push/send'
+            && ($payload[0]['to'] ?? null) === 'ExpoPushToken[test-token]'
+            && ($payload[0]['title'] ?? null) === 'Ny booking'
+            && ($payload[0]['body'] ?? null) === 'Ny Kunde · Konsultation · 12:00'
+            && ($payload[0]['data']['type'] ?? null) === 'booking_created';
+    });
 
     $this->assertDatabaseHas('bookings', [
         'tenant_id' => $tenant->id,

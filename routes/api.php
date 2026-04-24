@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\Native\AuthController;
 use App\Http\Controllers\Api\Native\NativeAppController;
+use App\Http\Controllers\Api\Native\NativeNotificationController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('native')
@@ -20,5 +21,6 @@ Route::prefix('native')
             Route::get('/booking-options', [NativeAppController::class, 'bookingOptions'])->name('bookings.options');
             Route::post('/bookings', [NativeAppController::class, 'storeBooking'])->name('bookings.store');
             Route::get('/services', [NativeAppController::class, 'services'])->name('services');
+            Route::post('/notifications/register', [NativeNotificationController::class, 'store'])->name('notifications.register');
         });
     });

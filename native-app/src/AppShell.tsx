@@ -30,8 +30,10 @@ import {
   fetchServices,
   login,
   logout,
+  registerPushToken,
 } from './api';
 import { appConfig } from './config';
+import { addBookingNotificationReceivedListener, addBookingNotificationResponseListener, resolveExpoPushToken } from './notifications';
 import { Booking, BookingOptionsPayload, BookingsPayload, BootstrapPayload, CalendarGrid, CalendarInterval, Location, Service, WorkShiftSummary } from './types';
 
 const TOKEN_KEY = 'platebook.native.token';
@@ -305,6 +307,60 @@ export function AppShell() {
 
     return () => clearTimeout(timer);
   }, [notice]);
+
+  useEffect(() => {
+    if (!token) {
+      return undefined;
+    }
+
+    let cancelled = false;
+    const platform = Platform.OS === 'ios' || Platform.OS === 'android' ? Platform.OS : 'unknown';
+
+    resolveExpoPushToken()
+      .then(async (pushToken) => {
+        if (cancelled || !pushToken) {
+          return;
+        }
+
+        await registerPushToken(token, pushToken, platform);
+      })
+      .catch(() => undefined);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
+
+  useEffect(() => {
+    const subscription = addBookingNotificationResponseListener((data) => {
+      const notificationDate = typeof data.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(data.date)
+        ? data.date
+        : null;
+      const notificationLocationId = Number(data.location_id);
+
+      setActiveTab('calendar');
+
+      if (notificationDate) {
+        setSelectedDate(notificationDate);
+      }
+
+      if (Number.isFinite(notificationLocationId) && notificationLocationId > 0) {
+        setSelectedLocationId(notificationLocationId);
+      }
+    });
+
+    return () => subscription.remove();
+  }, []);
+
+  useEffect(() => {
+    const subscription = addBookingNotificationReceivedListener(() => {
+      if (token && selectedLocationId) {
+        refreshCurrentData();
+      }
+    });
+
+    return () => subscription.remove();
+  }, [refreshCurrentData, selectedLocationId, token]);
 
   async function handleLogin(email: string, password: string) {
     setError(null);
