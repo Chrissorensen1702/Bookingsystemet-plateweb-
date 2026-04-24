@@ -309,7 +309,7 @@ export function AppShell() {
   }, [notice]);
 
   useEffect(() => {
-    if (!token) {
+    if (!appConfig.enablePushNotifications || !token) {
       return undefined;
     }
 
@@ -338,6 +338,10 @@ export function AppShell() {
   }, [token]);
 
   useEffect(() => {
+    if (!appConfig.enablePushNotifications) {
+      return undefined;
+    }
+
     const subscription = addBookingNotificationResponseListener((data) => {
       const notificationDate = typeof data.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(data.date)
         ? data.date
@@ -359,6 +363,10 @@ export function AppShell() {
   }, []);
 
   useEffect(() => {
+    if (!appConfig.enablePushNotifications) {
+      return undefined;
+    }
+
     const subscription = addBookingNotificationReceivedListener(() => {
       if (token && selectedLocationId) {
         refreshCurrentData();

@@ -2,12 +2,14 @@ import Constants from 'expo-constants';
 
 type ExpoConfigExtra = {
   baseUrl?: string;
+  enablePushNotifications?: boolean;
 };
 
 const extra = (Constants.expoConfig?.extra ?? {}) as ExpoConfigExtra;
 
 export const appConfig = {
   baseUrl: stripTrailingSlash(extra.baseUrl ?? 'https://login.platebook.dk'),
+  enablePushNotifications: extra.enablePushNotifications === true,
 };
 
 export function apiUrl(path: string) {

@@ -11,13 +11,7 @@
       "supportsTablet": true,
       "icon": "./assets/icon.png",
       "bundleIdentifier": "dk.platedigital.platebook",
-      "entitlements": {
-        "aps-environment": "development"
-      },
       "infoPlist": {
-        "UIBackgroundModes": [
-          "remote-notification"
-        ],
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": true,
           "NSAllowsArbitraryLoadsInWebContent": true
@@ -33,6 +27,7 @@
     },
     "extra": {
       "baseUrl": "https://login.platebook.dk",
+      "enablePushNotifications": false,
       "eas": {
         "projectId": "1c0a324b-1670-409b-9ffb-828d0e3bd5b0"
       }
