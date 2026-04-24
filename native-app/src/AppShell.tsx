@@ -324,7 +324,13 @@ export function AppShell() {
 
         await registerPushToken(token, pushToken, platform);
       })
-      .catch(() => undefined);
+      .catch((caught) => {
+        if (!cancelled) {
+          setNotice(caught instanceof Error
+            ? `Notifikationer kunne ikke aktiveres: ${caught.message}`
+            : 'Notifikationer kunne ikke aktiveres.');
+        }
+      });
 
     return () => {
       cancelled = true;
