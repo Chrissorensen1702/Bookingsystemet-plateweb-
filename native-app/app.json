@@ -1,0 +1,35 @@
+{
+  "expo": {
+    "name": "PlateBook",
+    "slug": "platebook-native",
+    "scheme": "platebook",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "icon": "./assets/icon.png",
+      "bundleIdentifier": "dk.platedigital.platebook",
+      "infoPlist": {
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true,
+          "NSAllowsArbitraryLoadsInWebContent": true
+        }
+      }
+    },
+    "android": {
+      "package": "dk.platedigital.platebook",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#f4f6fb"
+      }
+    },
+    "extra": {
+      "baseUrl": "http://192.168.1.193/bookingsystem/public"
+    },
+    "plugins": [
+      "expo-font"
+    ]
+  }
+}
